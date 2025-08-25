@@ -1,3 +1,4 @@
+from typing import Optional
 from sqlalchemy import String, Integer, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.session import Base
@@ -12,7 +13,7 @@ class Device(Base):
     location: Mapped[str | None] = mapped_column(String(100), nullable=True)
     vlan_id: Mapped[int | None] = mapped_column(ForeignKey("vlans.id"), nullable=True)
 
-    vlan: Mapped["Vlan" | None] = relationship("Vlan", back_populates="devices")
+    vlan: Mapped[Optional["Vlan"]] = relationship("Vlan", back_populates="devices")
     ip_assignments: Mapped[list["IpAssignment"]] = relationship(
         "IpAssignment", back_populates="device", cascade="all, delete-orphan"
     )

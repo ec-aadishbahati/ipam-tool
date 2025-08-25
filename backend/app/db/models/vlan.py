@@ -1,3 +1,4 @@
+from typing import Optional
 from sqlalchemy import String, Integer, UniqueConstraint, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.session import Base
@@ -14,6 +15,6 @@ class Vlan(Base):
 
     __table_args__ = (UniqueConstraint("site", "environment", "vlan_id", name="uq_vlan_site_env_id"),)
 
-    purpose: Mapped["Purpose" | None] = relationship("Purpose", back_populates="vlans")
+    purpose: Mapped[Optional["Purpose"]] = relationship("Purpose", back_populates="vlans")
     devices: Mapped[list["Device"]] = relationship("Device", back_populates="vlan")
     subnets: Mapped[list["Subnet"]] = relationship("Subnet", back_populates="vlan")

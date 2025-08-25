@@ -5,7 +5,6 @@ app = "ipam-tool"
 
 [env]
   PORT = "8080"
-  CORS_ORIGINS = "https://ipam-tool.vercel.app,https://localhost:5173,http://localhost:5173"
 
 [[services]]
   internal_port = 8080

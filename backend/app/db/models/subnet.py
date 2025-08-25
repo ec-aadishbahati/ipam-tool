@@ -1,3 +1,4 @@
+from typing import Optional
 from sqlalchemy import String, Integer, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.session import Base
@@ -16,9 +17,9 @@ class Subnet(Base):
     site: Mapped[str | None] = mapped_column(String(50), nullable=True)
     environment: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
-    supernet: Mapped["Supernet" | None] = relationship("Supernet", back_populates="subnets")
-    purpose: Mapped["Purpose" | None] = relationship("Purpose", back_populates="subnets")
-    vlan: Mapped["Vlan" | None] = relationship("Vlan", back_populates="subnets")
+    supernet: Mapped[Optional["Supernet"]] = relationship("Supernet", back_populates="subnets")
+    purpose: Mapped[Optional["Purpose"]] = relationship("Purpose", back_populates="subnets")
+    vlan: Mapped[Optional["Vlan"]] = relationship("Vlan", back_populates="subnets")
     ip_assignments: Mapped[list["IpAssignment"]] = relationship(
         "IpAssignment", back_populates="subnet", cascade="all, delete-orphan"
     )

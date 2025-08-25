@@ -42,12 +42,12 @@ async def healthz():
     return {"status": "ok"}
 
 
-app.include_router(auth.router, prefix="/auth", tags=["auth"])
-app.include_router(purposes.router, prefix="/purposes", tags=["purposes"])
-app.include_router(supernets.router, prefix="/supernets", tags=["supernets"])
-app.include_router(subnets.router, prefix="/subnets", tags=["subnets"])
-app.include_router(vlans.router, prefix="/vlans", tags=["vlans"])
-app.include_router(devices.router, prefix="/devices", tags=["devices"])
-app.include_router(ip_assignments.router, prefix="/ip-assignments", tags=["ip-assignments"])
-app.include_router(audits.router, prefix="/audits", tags=["audits"])
-app.include_router(search.router, prefix="/search", tags=["search"])
+app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
+app.include_router(purposes.router, prefix="/api/purposes", tags=["purposes"])
+app.include_router(supernets.router, prefix="/api/supernets", tags=["supernets"])
+app.include_router(subnets.router, prefix="/api/subnets", tags=["subnets"])
+app.include_router(vlans.router, prefix="/api/vlans", tags=["vlans"])
+app.include_router(devices.router, prefix="/api/devices", tags=["devices"])
+app.include_router(ip_assignments.router, prefix="/api/ip-assignments", tags=["ip-assignments"])
+app.include_router(audits.router, prefix="/api/audits", tags=["audits"])
+app.include_router(search.router, prefix="/api/search", tags=["search"])

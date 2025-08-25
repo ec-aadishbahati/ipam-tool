@@ -1,3 +1,4 @@
+from typing import Optional
 from sqlalchemy import String, Integer, UniqueConstraint, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.session import Base
@@ -14,4 +15,4 @@ class IpAssignment(Base):
     __table_args__ = (UniqueConstraint("subnet_id", "ip_address", name="uq_subnet_ip"),)
 
     subnet: Mapped["Subnet"] = relationship("Subnet", back_populates="ip_assignments")
-    device: Mapped["Device" | None] = relationship("Device", back_populates="ip_assignments")
+    device: Mapped[Optional["Device"]] = relationship("Device", back_populates="ip_assignments")
