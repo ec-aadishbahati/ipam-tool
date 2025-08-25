@@ -30,6 +30,11 @@ if settings.CORS_ORIGIN_REGEX:
 app.add_middleware(CORSMiddleware, **cors_kwargs)
 
 
+@app.get("/", include_in_schema=False)
+async def root():
+    return {"service": "ipam-api", "docs": "/docs", "health": "/healthz"}
+
+
 @app.get("/healthz")
 async def healthz():
     async with AsyncSession(engine) as session:
