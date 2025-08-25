@@ -1,0 +1,10 @@
+name: Deploy Frontend to Vercel
+
+on:
+  workflow_dispatch:
+
+jobs:
+  disabled:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Disabled in favor of Vercel Git Integration (frontend deployed by Vercel from GitHub repo)"

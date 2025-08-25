@@ -1,0 +1,84 @@
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, delete
+from app.api.deps import get_current_user
+from app.db.session import get_db
+from app.db.models import Vlan, Subnet, Device
+from app.schemas.vlan import VlanCreate, VlanOut, VlanUpdate
+from app.services.audit import record_audit
+
+router = APIRouter()
+
+
+@router.get("", response_model=list[VlanOut])
+async def list_vlans(db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+    res = await db.execute(select(Vlan))
+    return res.scalars().all()
+
+
+@router.post("", response_model=VlanOut)
+async def create_vlan(payload: VlanCreate, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+    exists = await db.execute(
+        select(Vlan).where(Vlan.site == payload.site, Vlan.environment == payload.environment, Vlan.vlan_id == payload.vlan_id)
+    )
+    if exists.scalar_one_or_none():
+        raise HTTPException(status_code=400, detail="VLAN already exists in site/environment")
+    obj = Vlan(
+        site=payload.site,
+        environment=payload.environment,
+        vlan_id=payload.vlan_id,
+        name=payload.name,
+        purpose_id=payload.purpose_id,
+    )
+    db.add(obj)
+    await db.commit()
+    await db.refresh(obj)
+    await record_audit(
+        db,
+        entity_type="vlan",
+        entity_id=obj.id,
+        action="create",
+        before=None,
+        after={"id": obj.id, "site": obj.site, "environment": obj.environment, "vlan_id": obj.vlan_id},
+        user_id=user.id,
+    )
+    return obj
+
+
+@router.patch("/{vlan_id}", response_model=VlanOut)
+async def update_vlan(vlan_id: int, payload: VlanUpdate, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+    res = await db.execute(select(Vlan).where(Vlan.id == vlan_id))
+    obj = res.scalar_one_or_none()
+    if not obj:
+        raise HTTPException(status_code=404, detail="Not found")
+    before = {"site": obj.site, "environment": obj.environment, "vlan_id": obj.vlan_id, "name": obj.name, "purpose_id": obj.purpose_id}
+    if payload.site is not None:
+        obj.site = payload.site
+    if payload.environment is not None:
+        obj.environment = payload.environment
+    if payload.vlan_id is not None:
+        obj.vlan_id = payload.vlan_id
+    if payload.name is not None:
+        obj.name = payload.name
+    if payload.purpose_id is not None:
+        obj.purpose_id = payload.purpose_id
+    db.add(obj)
+    await db.commit()
+    await db.refresh(obj)
+    after = {"site": obj.site, "environment": obj.environment, "vlan_id": obj.vlan_id, "name": obj.name, "purpose_id": obj.purpose_id}
+    await record_audit(db, entity_type="vlan", entity_id=obj.id, action="update", before=before, after=after, user_id=user.id)
+    return obj
+
+
+@router.delete("/{vlan_id}")
+async def delete_vlan(vlan_id: int, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+    in_use_subnet = await db.execute(select(Subnet).where(Subnet.vlan_id == vlan_id))
+    if in_use_subnet.first():
+        raise HTTPException(status_code=400, detail="VLAN in use by subnet")
+    in_use_device = await db.execute(select(Device).where(Device.vlan_id == vlan_id))
+    if in_use_device.first():
+        raise HTTPException(status_code=400, detail="VLAN in use by device")
+    await db.execute(delete(Vlan).where(Vlan.id == vlan_id))
+    await db.commit()
+    await record_audit(db, entity_type="vlan", entity_id=vlan_id, action="delete", before=None, after=None, user_id=user.id)
+    return {"message": "deleted"}
