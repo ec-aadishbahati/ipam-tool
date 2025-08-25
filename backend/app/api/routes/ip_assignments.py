@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
+from sqlalchemy.orm import selectinload
 from app.api.deps import get_current_user
 from app.db.session import get_db
 from app.db.models import IpAssignment, Subnet
@@ -13,7 +14,11 @@ router = APIRouter()
 
 @router.get("", response_model=list[IpAssignmentOut])
 async def list_ip_assignments(db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
-    res = await db.execute(select(IpAssignment))
+    res = await db.execute(
+        select(IpAssignment).options(
+            selectinload(IpAssignment.subnet), selectinload(IpAssignment.device)
+        )
+    )
     return res.scalars().all()
 
 
