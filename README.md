@@ -57,28 +57,24 @@ CI/CD via GitHub
 
 - Add Repo Secrets (GitHub → Settings → Secrets and variables → Actions)
   - FLY_API_TOKEN: your FlyV1 token (paste the entire string exactly as provided, including the comma)
-  - If using Vercel CLI workflow (optional):
-    - VERCEL_TOKEN: your Vercel token
-    - VERCEL_ORG_ID: team_DSuJn9XlVE6ntXYE6lKTZTmK
-    - VERCEL_PROJECT_ID: prj_cL8LKCahGeRkJahc8u0223KvlANj
 
-- Choose Frontend Deployment Path
-  - Option A: Vercel Git Integration (recommended)
-    - In Vercel, import the GitHub repo to your team.
-    - Root Directory: frontend
-    - Build Command: npm run build
-    - Output Directory: dist
-    - Environment Variables (Production & Preview): VITE_API_BASE=https://ipam-tool.fly.dev
-    - Disable Production Protection or configure access as desired.
-  - Option B: GitHub Actions with Vercel CLI (already included)
-    - Keep .github/workflows/vercel-deploy.yml
-    - Ensure VERCEL_* secrets exist in GitHub as above.
-    - Ensure Vercel project also has VITE_API_BASE set for Production and Preview.
+- Frontend deployment (Vercel Git Integration)
+  - In Vercel, import the GitHub repo to your team.
+  - Root Directory: frontend
+  - Build Command: npm run build
+  - Output Directory: dist
+  - Environment Variables (Production & Preview): VITE_API_BASE=https://ipam-tool.fly.dev
+  - Ensure Production Protection is disabled or configured as desired.
+  - Note: The GitHub Action at .github/workflows/vercel-deploy.yml is disabled and can be ignored (kept only for future/manual use).
+
+- Backend deployment (GitHub Actions → Fly.io)
+  - Workflow: .github/workflows/fly-deploy.yml
+  - Deploys backend/ to Fly app ipam-tool on push to main.
 
 - First Deploy from GitHub
   - Push to main; GitHub Actions:
-    - Deploy Backend to Fly.io: uses flyctl to deploy backend/ to app ipam-tool
-    - Deploy Frontend to Vercel: either Vercel Git Integration triggers automatically or the Vercel CLI Action runs
+    - Deploy Backend to Fly.io runs via flyctl and releases backend.
+  - Vercel Git Integration builds/deploys the frontend automatically from GitHub.
   - Verify:
     - Backend: https://ipam-tool.fly.dev/healthz returns {"status":"ok"}
     - Frontend: visit /login and other deep links (SPA rewrites prevent 404). If redirected to Vercel login, disable Production Protection or share bypass.
