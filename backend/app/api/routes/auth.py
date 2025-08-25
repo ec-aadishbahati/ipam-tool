@@ -49,4 +49,5 @@ async def refresh(token: str, db: AsyncSession = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     access = create_access_token(user.id)
-    return {"access_token": access, "token_type": "bearer"}
+    refresh = create_refresh_token(user.id)
+    return {"access_token": access, "refresh_token": refresh, "token_type": "bearer"}
