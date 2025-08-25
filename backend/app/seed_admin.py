@@ -43,5 +43,9 @@ async def ensure_admin() -> None:
             await session.commit()
 
 
+async def main() -> None:
+    await ensure_admin()
+
+
 if __name__ == "__main__":
-    asyncio.run(ensure_admin())
+    asyncio.run(main())
