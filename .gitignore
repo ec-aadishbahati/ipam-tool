@@ -1,0 +1,57 @@
+# Root ignores
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.venv/
+venv/
+.env
+.env.*
+*.sqlite3
+
+# Node/Frontend
+node_modules/
+dist/
+.build/
+*.log
+.vscode/
+.idea/
+.DS_Store
+.vercel/
+coverage/
+
+# Docker
+*.pid
+*.sock
+
+# Misc
+*.local
+*.cache/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+.env
+.env.*
+dist/
+build/
+
+# Node
+node_modules/
+frontend/.env
+frontend/.env.*
+*.log
+
+# Alembic
+backend/alembic/versions/*.pyc
+
+# Docker
+*.pid
+
+# OS
+.DS_Store
