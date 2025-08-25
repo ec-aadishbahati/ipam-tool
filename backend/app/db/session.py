@@ -9,17 +9,29 @@ def _strip_query(url: str) -> str:
     if not url:
         return url
     parts = urlsplit(url)
+    if "sslmode=require" in (parts.query or ""):
+        return url
     return urlunsplit((parts.scheme, parts.netloc, parts.path, "", parts.fragment))
 
 
 _ssl_ctx = ssl.create_default_context()
-_ssl_ctx.check_hostname = False
-_ssl_ctx.verify_mode = ssl.CERT_NONE
+if settings.ENV == "production":
+    _ssl_ctx.check_hostname = True
+    _ssl_ctx.verify_mode = ssl.CERT_REQUIRED
+else:
+    _ssl_ctx.check_hostname = False
+    _ssl_ctx.verify_mode = ssl.CERT_NONE
+
+connect_args = {}
+if "postgresql" in settings.DATABASE_URL and "sslmode=require" in settings.DATABASE_URL:
+    connect_args = {"ssl": _ssl_ctx}
+elif settings.ENV == "production":
+    connect_args = {"ssl": _ssl_ctx}
 
 engine = create_async_engine(
     _strip_query(settings.DATABASE_URL),
     pool_pre_ping=True,
-    connect_args={"ssl": _ssl_ctx},
+    connect_args=connect_args,
 )
 AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 Base = declarative_base()
