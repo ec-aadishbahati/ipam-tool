@@ -4,11 +4,11 @@ app = "ipam-tool"
   dockerfile = "Dockerfile"
 
 [env]
-  PORT = "8000"
+  PORT = "8080"
   CORS_ORIGINS = "https://ipam-tool.vercel.app,https://localhost:5173,http://localhost:5173"
 
 [[services]]
-  internal_port = 8000
+  internal_port = 8080
   processes = ["app"]
   protocol = "tcp"
 

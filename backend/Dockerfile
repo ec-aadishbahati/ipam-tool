@@ -18,9 +18,9 @@ COPY alembic /app/alembic
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
-ENV PORT=8000
+ENV PORT=8080
 ENV PGSSLMODE=require
 
-EXPOSE 8000
+EXPOSE 8080
 
 CMD ["/app/entrypoint.sh"]
