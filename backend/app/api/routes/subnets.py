@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
+from sqlalchemy.orm import selectinload
 from app.api.deps import get_current_user
 from app.db.session import get_db
 from app.db.models import Subnet
@@ -13,7 +14,13 @@ router = APIRouter()
 
 @router.get("", response_model=list[SubnetOut])
 async def list_subnets(db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
-    res = await db.execute(select(Subnet))
+    res = await db.execute(
+        select(Subnet).options(
+            selectinload(Subnet.supernet),
+            selectinload(Subnet.purpose),
+            selectinload(Subnet.vlan),
+        )
+    )
     return res.scalars().all()
 
 
