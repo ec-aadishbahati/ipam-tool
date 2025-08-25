@@ -16,10 +16,10 @@ def is_usable_ip_in_subnet(ip: str, cidr: str) -> bool:
     addr = ipaddress.ip_address(ip)
     if net.prefixlen == net.max_prefixlen:
         return addr in net
-    return addr in net.hosts()
+    return addr in list(net.hosts())
 
 
 def is_gateway_valid(gateway: str, cidr: str) -> bool:
     net = ipaddress.ip_network(cidr, strict=False)
     addr = ipaddress.ip_address(gateway)
-    return addr in net and (net.prefixlen == net.max_prefixlen or addr in net.hosts())
+    return addr in net and (net.prefixlen == net.max_prefixlen or addr in list(net.hosts()))

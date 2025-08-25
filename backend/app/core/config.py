@@ -11,6 +11,10 @@ class Settings(BaseSettings):
     CORS_ORIGIN_REGEX: str = ""
     LOG_LEVEL: str = "info"
     ENV: str = "production"
+    
+    ADMIN_USERNAME: str = "admin"
+    ADMIN_PASSWORD: str = "admin123"
+    ADMIN_EMAIL: str = "admin@ipam-tool.local"
 
     class Config:
         env_file = ".env"

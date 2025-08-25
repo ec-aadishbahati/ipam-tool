@@ -35,10 +35,13 @@ async def login(payload: UserLogin, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/refresh")
-async def refresh(token: str, db: AsyncSession = Depends(get_db)):
+async def refresh(payload: dict, db: AsyncSession = Depends(get_db)):
+    token = payload.get("token")
+    if not token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token is required")
     try:
-        payload = jwt.decode(token, settings.JWT_REFRESH_SECRET_KEY, algorithms=["HS256"])
-        sub = payload.get("sub")
+        jwt_payload = jwt.decode(token, settings.JWT_REFRESH_SECRET_KEY, algorithms=["HS256"])
+        sub = jwt_payload.get("sub")
         if not sub:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
         uid = int(sub)
