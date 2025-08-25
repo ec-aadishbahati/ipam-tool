@@ -37,9 +37,12 @@ async def root():
 
 @app.get("/healthz")
 async def healthz():
-    async with AsyncSession(engine) as session:
-        await session.execute(text("SELECT 1"))
-    return {"status": "ok"}
+    try:
+        async with AsyncSession(engine) as session:
+            await session.execute(text("SELECT 1"))
+        return {"status": "ok", "database": "connected"}
+    except Exception as e:
+        return {"status": "degraded", "database": "disconnected", "error": str(e)}
 
 
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
