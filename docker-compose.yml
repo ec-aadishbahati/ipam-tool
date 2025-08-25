@@ -18,7 +18,7 @@ services:
       JWT_REFRESH_SECRET_KEY: dev-refresh
       ACCESS_TOKEN_EXPIRE_MINUTES: "15"
       REFRESH_TOKEN_EXPIRE_DAYS: "7"
-      CORS_ORIGINS: https://localhost:5173,http://localhost:5173
+      CORS_ORIGINS: https://ipam-tool.vercel.app,https://localhost:5173,http://localhost:5173
       LOG_LEVEL: info
     depends_on:
       - db
