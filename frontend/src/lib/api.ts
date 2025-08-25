@@ -37,7 +37,8 @@ api.interceptors.response.use(
           const rt = getRefreshToken();
           if (!rt) throw new Error("no refresh token");
           const res = await axios.post(`${base}/auth/refresh`, { token: rt });
-          setTokens(res.data.access_token, res.data.refresh_token);
+          const { access_token, refresh_token } = res.data;
+          setTokens(access_token, refresh_token);
           pending.forEach((fn) => fn());
           pending = [];
         } catch {
