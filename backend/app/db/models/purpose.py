@@ -10,5 +10,5 @@ class Purpose(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     category: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
-    subnets: Mapped[list["Subnet"]] = relationship("Subnet", back_populates="purpose")
-    vlans: Mapped[list["Vlan"]] = relationship("Vlan", back_populates="purpose")
+    subnets: Mapped[list["Subnet"]] = relationship("Subnet", back_populates="purpose", cascade="all, delete-orphan")
+    vlans: Mapped[list["Vlan"]] = relationship("Vlan", back_populates="purpose", cascade="all, delete-orphan")

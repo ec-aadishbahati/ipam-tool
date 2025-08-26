@@ -10,4 +10,4 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     is_admin: Mapped[bool] = mapped_column(default=False)
 
-    audit_logs: Mapped[list["AuditLog"]] = relationship("AuditLog", back_populates="user")
+    audit_logs: Mapped[list["AuditLog"]] = relationship("AuditLog", back_populates="user", cascade="all, delete-orphan")

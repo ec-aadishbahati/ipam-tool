@@ -11,4 +11,4 @@ class Supernet(Base):
     site: Mapped[str | None] = mapped_column(String(50), nullable=True)
     environment: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
-    subnets: Mapped[list["Subnet"]] = relationship("Subnet", back_populates="supernet")
+    subnets: Mapped[list["Subnet"]] = relationship("Subnet", back_populates="supernet", cascade="all, delete-orphan")
