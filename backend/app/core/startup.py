@@ -27,6 +27,8 @@ def validate_environment():
         logger.info(f"CORS origins configured: {settings.CORS_ORIGINS}")
     
     fly_region = os.environ.get('FLY_REGION', 'unknown')
-    logger.info(f"Running in Fly.io ENV: {fly_region}")
+    fly_app_name = os.environ.get('FLY_APP_NAME', 'unknown')
+    fly_alloc_id = os.environ.get('FLY_ALLOC_ID', 'unknown')
+    logger.info(f"Running in Fly.io ENV - Region: {fly_region}, App: {fly_app_name}, Alloc: {fly_alloc_id}")
     
     logger.info("Environment validation passed")
