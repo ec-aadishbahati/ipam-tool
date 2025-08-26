@@ -13,8 +13,8 @@ class Settings(BaseSettings):
     ENV: str = "production"
     
     ADMIN_USERNAME: str = "admin"
-    ADMIN_PASSWORD: str = "admin123"
-    ADMIN_EMAIL: str = "admin@ipam-tool.local"
+    ADMIN_PASSWORD: str = "changeme123!"
+    ADMIN_EMAIL: str = "admin@example.com"
 
     class Config:
         env_file = ".env"
