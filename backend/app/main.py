@@ -3,10 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
+from app.core.startup import validate_environment
 from app.db.session import engine
 from app.api.routes import auth, purposes, supernets, subnets, vlans
 from app.api.routes import devices, ip_assignments, audits, search
 
+validate_environment()
 
 def _parse_origins(origins_str: str) -> list[str]:
     if not origins_str:
@@ -16,6 +18,10 @@ def _parse_origins(origins_str: str) -> list[str]:
 
 app = FastAPI(title="IPAM")
 
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 cors_kwargs = {
     "allow_credentials": True,
     "allow_methods": ["*"],
@@ -24,10 +30,13 @@ cors_kwargs = {
 origin_list = _parse_origins(settings.CORS_ORIGINS)
 if origin_list:
     cors_kwargs["allow_origins"] = origin_list
+    logger.info(f"CORS origins configured: {origin_list}")
 if settings.CORS_ORIGIN_REGEX:
     cors_kwargs["allow_origin_regex"] = settings.CORS_ORIGIN_REGEX
+    logger.info(f"CORS origin regex configured: {settings.CORS_ORIGIN_REGEX}")
 
 app.add_middleware(CORSMiddleware, **cors_kwargs)
+logger.info("CORS middleware configured successfully")
 
 
 @app.get("/", include_in_schema=False)
@@ -42,7 +51,14 @@ async def healthz():
             await session.execute(text("SELECT 1"))
         return {"status": "ok", "database": "connected"}
     except Exception as e:
-        return {"status": "degraded", "database": "disconnected", "error": str(e)}
+        import traceback
+        return {
+            "status": "degraded", 
+            "database": "disconnected", 
+            "error": str(e),
+            "error_type": type(e).__name__,
+            "traceback": traceback.format_exc()
+        }
 
 
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
