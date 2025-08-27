@@ -43,11 +43,18 @@ def _create_ssl_context():
 _ssl_ctx = _create_ssl_context()
 connect_args = {"ssl": _ssl_ctx}
 
-engine = create_async_engine(
-    _strip_query(settings.DATABASE_URL),
-    pool_pre_ping=True,
-    connect_args=connect_args,
-)
+database_url = settings.DATABASE_URL
+if database_url.startswith("sqlite"):
+    engine = create_async_engine(
+        database_url,
+        pool_pre_ping=True,
+    )
+else:
+    engine = create_async_engine(
+        _strip_query(database_url),
+        pool_pre_ping=True,
+        connect_args=connect_args,
+    )
 AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 Base = declarative_base()
 
