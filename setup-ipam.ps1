@@ -76,9 +76,18 @@ Set-Location "backend"
 
 # Create backend .env file
 Write-Host "Creating backend .env file..." -ForegroundColor Cyan
-$backendEnvContent = "DATABASE_URL=sqlite+aiosqlite:///./ipam.db`nJWT_SECRET_KEY=your-secret-key-here-change-in-production`nJWT_REFRESH_SECRET_KEY=your-refresh-secret-key-here-change-in-production`nACCESS_TOKEN_EXPIRE_MINUTES=15`nREFRESH_TOKEN_EXPIRE_DAYS=7`nADMIN_EMAIL=$AdminEmail`nADMIN_PASSWORD=$AdminPassword`nCORS_ORIGINS=http://localhost:5173,http://localhost:5174`nENV=development`nLOG_LEVEL=info"
-
-$backendEnvContent | Out-File -FilePath ".env" -Encoding UTF8
+@"
+DATABASE_URL=sqlite+aiosqlite:///./ipam.db
+JWT_SECRET_KEY=your-secret-key-here-change-in-production
+JWT_REFRESH_SECRET_KEY=your-refresh-secret-key-here-change-in-production
+ACCESS_TOKEN_EXPIRE_MINUTES=15
+REFRESH_TOKEN_EXPIRE_DAYS=7
+ADMIN_EMAIL=$AdminEmail
+ADMIN_PASSWORD=$AdminPassword
+CORS_ORIGINS=http://localhost:5173,http://localhost:5174
+ENV=development
+LOG_LEVEL=info
+"@ | Out-File -FilePath ".env" -Encoding UTF8
 Write-Host "Backend .env file created" -ForegroundColor Green
 
 # Install backend dependencies
