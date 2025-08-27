@@ -60,7 +60,7 @@ api.interceptors.response.use(
           setTokens(access_token, refresh_token);
           pending.forEach((fn) => fn());
           pending = [];
-        } catch {
+        } catch (refreshError) {
           clearTokens();
           window.location.href = "/login";
           return Promise.reject(error);
