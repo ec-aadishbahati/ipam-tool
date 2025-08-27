@@ -29,10 +29,12 @@ export const api = axios.create({
 
 api.interceptors.request.use((config) => {
   const token = getAccessToken();
-  if (token) {
-    config.headers = config.headers ?? {};
-    (config.headers as any).Authorization = `Bearer ${token}`;
+  if (!token) {
+    window.location.href = "/login";
+    return Promise.reject(new Error("no access token"));
   }
+  config.headers = config.headers ?? {};
+  (config.headers as any).Authorization = `Bearer ${token}`;
   return config;
 });
 
