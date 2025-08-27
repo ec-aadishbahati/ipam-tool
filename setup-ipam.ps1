@@ -87,7 +87,7 @@ ADMIN_PASSWORD=$AdminPassword
 CORS_ORIGINS=http://localhost:5173,http://localhost:5174
 ENV=development
 LOG_LEVEL=info
-"@ | Out-File -FilePath ".env" -Encoding UTF8
+"@ | Out-File -FilePath ".env" -Encoding ASCII
 Write-Host "Backend .env file created" -ForegroundColor Green
 
 # Install backend dependencies
@@ -139,7 +139,7 @@ Set-Location "../frontend"
 
 # Create frontend .env.local file
 Write-Host "Creating frontend .env.local file..." -ForegroundColor Cyan
-"VITE_API_BASE=http://localhost:8000/api" | Out-File -FilePath ".env.local" -Encoding UTF8
+"VITE_API_BASE=http://localhost:8000/api" | Out-File -FilePath ".env.local" -Encoding ASCII
 Write-Host "Frontend .env.local file created" -ForegroundColor Green
 
 # Install frontend dependencies
