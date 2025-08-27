@@ -1,11 +1,13 @@
 import React from "react";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api } from "../lib/api";
+import { useNavigate } from "react-router-dom";
 
 export default function Supernets() {
   const qc = useQueryClient();
+  const nav = useNavigate();
   const { data, isLoading, error } = useQuery({ queryKey: ["supernets"], queryFn: async () => (await api.get("/supernets")).data });
   const [form, setForm] = useState({ name: "", cidr: "", site: "", environment: "" });
   const create = useMutation({
@@ -15,6 +17,13 @@ export default function Supernets() {
       qc.invalidateQueries({ queryKey: ["supernets"] });
     },
   });
+
+  useEffect(() => {
+    const status = (error as any)?.response?.status;
+    if (status === 401) {
+      nav("/login");
+    }
+  }, [error, nav]);
 
   return (
     <div className="space-y-4">
@@ -35,7 +44,9 @@ export default function Supernets() {
       {isLoading ? (
         <div>Loading…</div>
       ) : error ? (
-        <div className="text-red-600">Failed to load</div>
+        <div className="text-red-600">
+          {(error as any)?.response?.data?.detail || (error as Error).message || "Failed to load"}
+        </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm border">
