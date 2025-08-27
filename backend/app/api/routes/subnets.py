@@ -8,6 +8,7 @@ from app.db.models import Subnet
 from app.schemas.subnet import SubnetCreate, SubnetOut, SubnetUpdate
 from app.services.ipam import cidr_overlap, is_gateway_valid
 from app.services.audit import record_audit
+from app.services.subnet_allocation import allocate_subnet_cidr, calculate_gateway_ip
 
 router = APIRouter()
 
@@ -26,23 +27,46 @@ async def list_subnets(db: AsyncSession = Depends(get_db), user=Depends(get_curr
 
 @router.post("", response_model=SubnetOut)
 async def create_subnet(payload: SubnetCreate, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+    try:
+        allocated_cidr = await allocate_subnet_cidr(
+            db=db,
+            allocation_mode=payload.allocation_mode,
+            supernet_id=payload.supernet_id,
+            manual_cidr=payload.cidr,
+            subnet_mask=payload.subnet_mask,
+            host_count=payload.host_count
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
     existing = await db.execute(select(Subnet))
     for s in existing.scalars().all():
-        if cidr_overlap(s.cidr, payload.cidr):
+        if cidr_overlap(s.cidr, allocated_cidr):
             raise HTTPException(status_code=400, detail="Overlapping subnet")
-    if payload.gateway_ip:
-        if not is_gateway_valid(payload.gateway_ip, payload.cidr):
-            raise HTTPException(status_code=400, detail="Invalid gateway for subnet")
+    
+    gateway_ip = payload.gateway_ip
+    if payload.gateway_mode == "auto_first":
+        gateway_ip = calculate_gateway_ip(allocated_cidr, payload.gateway_mode)
+    elif payload.gateway_mode == "none":
+        gateway_ip = None
+    
+    if gateway_ip and not is_gateway_valid(gateway_ip, allocated_cidr):
+        raise HTTPException(status_code=400, detail="Invalid gateway for subnet")
+    
     obj = Subnet(
-        cidr=payload.cidr,
+        cidr=allocated_cidr,
         name=payload.name,
         purpose_id=payload.purpose_id,
         assigned_to=payload.assigned_to,
-        gateway_ip=payload.gateway_ip,
+        gateway_ip=gateway_ip,
         vlan_id=payload.vlan_id,
         site=payload.site,
         environment=payload.environment,
         supernet_id=payload.supernet_id,
+        allocation_mode=payload.allocation_mode,
+        gateway_mode=payload.gateway_mode,
+        subnet_mask=payload.subnet_mask,
+        host_count=payload.host_count,
     )
     db.add(obj)
     await db.commit()
@@ -92,6 +116,14 @@ async def update_subnet(subnet_id: int, payload: SubnetUpdate, db: AsyncSession 
         obj.environment = payload.environment
     if payload.supernet_id is not None:
         obj.supernet_id = payload.supernet_id
+    if payload.allocation_mode is not None:
+        obj.allocation_mode = payload.allocation_mode
+    if payload.gateway_mode is not None:
+        obj.gateway_mode = payload.gateway_mode
+    if payload.subnet_mask is not None:
+        obj.subnet_mask = payload.subnet_mask
+    if payload.host_count is not None:
+        obj.host_count = payload.host_count
     db.add(obj)
     await db.commit()
     await db.refresh(obj)
