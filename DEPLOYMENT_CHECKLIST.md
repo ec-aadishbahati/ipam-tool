@@ -10,8 +10,9 @@
 - `JWT_REFRESH_SECRET_KEY=<different-secure-random-string>`
 
 ### CORS Configuration
-- `CORS_ORIGIN_REGEX=^https://([a-z0-9-]+)\.vercel\.app$`
-- `CORS_ORIGINS=` (optional, can be empty when using regex)
+- `CORS_ORIGINS=<frontend-origin>` (exact origin; required when allowing credentials)
+- `CORS_ORIGIN_REGEX=^https://([a-z0-9-]+)\.vercel\.app$` (optional regex for previews)
+  - At least one of the above must be set
 
 ### Admin User Configuration
 - `ADMIN_USERNAME=admin`
@@ -31,6 +32,8 @@
 fly secrets set DATABASE_URL="postgresql+asyncpg://..." -a ipam-tool
 fly secrets set JWT_SECRET_KEY="your-secret-key" -a ipam-tool
 fly secrets set JWT_REFRESH_SECRET_KEY="your-refresh-secret-key" -a ipam-tool
+fly secrets set CORS_ORIGINS="https://ee-ipam.vercel.app" -a ipam-tool
+# or, for multiple preview domains
 fly secrets set CORS_ORIGIN_REGEX="^https://([a-z0-9-]+)\.vercel\.app$" -a ipam-tool
 fly secrets set ADMIN_USERNAME="admin" -a ipam-tool
 fly secrets set ADMIN_PASSWORD="secure-password" -a ipam-tool
