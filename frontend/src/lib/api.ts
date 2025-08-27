@@ -8,20 +8,17 @@ import {
 
 const rawBase = import.meta.env.VITE_API_BASE as string | undefined;
 
-if (!rawBase) {
-  if (import.meta.env.PROD) {
-    throw new Error("VITE_API_BASE is required in production");
-  }
-  console.warn("VITE_API_BASE is not set; defaulting to /api");
+const base = rawBase && rawBase.trim() !== "" ? rawBase : undefined;
+
+if (import.meta.env.PROD && !base) {
+  throw new Error("VITE_API_BASE is required in production");
 }
 
-const base = rawBase ?? "/api";
-
-if (rawBase && !rawBase.startsWith("https://") && !rawBase.startsWith("http://localhost")) {
+if (base && !base.startsWith("https://") && !base.startsWith("http://localhost")) {
   console.warn("VITE_API_BASE should be HTTPS in production");
 }
 
-console.log(`API base URL resolved to ${base}`);
+console.log(`API base URL resolved to ${base ?? "(none)"}`);
 
 export const api = axios.create({
   baseURL: base,
@@ -52,7 +49,7 @@ api.interceptors.response.use(
         try {
           const rt = getRefreshToken();
           if (!rt) throw new Error("no refresh token");
-          const res = await axios.post(`${base}/auth/refresh`, { token: rt });
+          const res = await axios.post(`${base ?? ""}/auth/refresh`, { token: rt });
           const { access_token, refresh_token } = res.data;
           setTokens(access_token, refresh_token);
           pending.forEach((fn) => fn());
