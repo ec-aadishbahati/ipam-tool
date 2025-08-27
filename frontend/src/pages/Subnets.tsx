@@ -21,6 +21,10 @@ export default function Subnets() {
     site: "",
     environment: "",
     supernet_id: undefined as number | undefined,
+    allocation_mode: "manual",
+    gateway_mode: "manual",
+    subnet_mask: undefined as number | undefined,
+    host_count: undefined as number | undefined,
   });
 
   const create = useMutation({
@@ -33,10 +37,47 @@ export default function Subnets() {
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold">Subnets</h2>
-      <div className="border rounded p-3 space-y-2">
+      <div className="border rounded p-3 space-y-4">
         <div className="grid grid-cols-2 gap-2">
           <input className="border p-2 rounded" placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          <input className="border p-2 rounded" placeholder="CIDR 10.1.0.0/16" value={form.cidr} onChange={(e) => setForm({ ...form, cidr: e.target.value })} />
+          <select className="border p-2 rounded" value={form.supernet_id ?? ""} onChange={(e) => setForm({ ...form, supernet_id: e.target.value ? Number(e.target.value) : undefined })}>
+            <option value="">Supernet (required for auto modes)</option>
+            {(supernets ?? []).map((s: any) => (
+              <option key={s.id} value={s.id}>
+                {s.name} - {s.cidr}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-sm font-medium">CIDR Allocation Mode</label>
+          <div className="flex gap-4">
+            <label className="flex items-center">
+              <input type="radio" name="allocation_mode" value="manual" checked={form.allocation_mode === "manual"} onChange={(e) => setForm({ ...form, allocation_mode: e.target.value })} className="mr-2" />
+              Manual CIDR
+            </label>
+            <label className="flex items-center">
+              <input type="radio" name="allocation_mode" value="auto_mask" checked={form.allocation_mode === "auto_mask"} onChange={(e) => setForm({ ...form, allocation_mode: e.target.value })} className="mr-2" />
+              Auto by Subnet Mask
+            </label>
+            <label className="flex items-center">
+              <input type="radio" name="allocation_mode" value="auto_hosts" checked={form.allocation_mode === "auto_hosts"} onChange={(e) => setForm({ ...form, allocation_mode: e.target.value })} className="mr-2" />
+              Auto by Host Count
+            </label>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          {form.allocation_mode === "manual" && (
+            <input className="border p-2 rounded" placeholder="CIDR 10.1.0.0/24" value={form.cidr} onChange={(e) => setForm({ ...form, cidr: e.target.value })} />
+          )}
+          {form.allocation_mode === "auto_mask" && (
+            <input className="border p-2 rounded" placeholder="Subnet mask (e.g., 24)" type="number" value={form.subnet_mask ?? ""} onChange={(e) => setForm({ ...form, subnet_mask: e.target.value ? Number(e.target.value) : undefined })} />
+          )}
+          {form.allocation_mode === "auto_hosts" && (
+            <input className="border p-2 rounded" placeholder="Number of hosts needed" type="number" value={form.host_count ?? ""} onChange={(e) => setForm({ ...form, host_count: e.target.value ? Number(e.target.value) : undefined })} />
+          )}
           <select className="border p-2 rounded" value={form.purpose_id ?? ""} onChange={(e) => setForm({ ...form, purpose_id: e.target.value ? Number(e.target.value) : undefined })}>
             <option value="">Purpose</option>
             {(purposes ?? []).map((p: any) => (
@@ -46,9 +87,32 @@ export default function Subnets() {
             ))}
           </select>
           <input className="border p-2 rounded" placeholder="Assigned To" value={form.assigned_to} onChange={(e) => setForm({ ...form, assigned_to: e.target.value })} />
-          <input className="border p-2 rounded" placeholder="Gateway (optional)" value={form.gateway_ip} onChange={(e) => setForm({ ...form, gateway_ip: e.target.value })} />
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-sm font-medium">Gateway Assignment</label>
+          <div className="flex gap-4">
+            <label className="flex items-center">
+              <input type="radio" name="gateway_mode" value="manual" checked={form.gateway_mode === "manual"} onChange={(e) => setForm({ ...form, gateway_mode: e.target.value })} className="mr-2" />
+              Manual Gateway
+            </label>
+            <label className="flex items-center">
+              <input type="radio" name="gateway_mode" value="auto_first" checked={form.gateway_mode === "auto_first"} onChange={(e) => setForm({ ...form, gateway_mode: e.target.value })} className="mr-2" />
+              Auto First IP
+            </label>
+            <label className="flex items-center">
+              <input type="radio" name="gateway_mode" value="none" checked={form.gateway_mode === "none"} onChange={(e) => setForm({ ...form, gateway_mode: e.target.value })} className="mr-2" />
+              No Gateway
+            </label>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          {form.gateway_mode === "manual" && (
+            <input className="border p-2 rounded" placeholder="Gateway IP (optional)" value={form.gateway_ip} onChange={(e) => setForm({ ...form, gateway_ip: e.target.value })} />
+          )}
           <select className="border p-2 rounded" value={form.vlan_id ?? ""} onChange={(e) => setForm({ ...form, vlan_id: e.target.value ? Number(e.target.value) : undefined })}>
-            <option value="">VLAN</option>
+            <option value="">VLAN (optional)</option>
             {(vlans ?? []).map((v: any) => (
               <option key={v.id} value={v.id}>
                 {v.vlan_id} - {v.name}
@@ -57,19 +121,24 @@ export default function Subnets() {
           </select>
           <input className="border p-2 rounded" placeholder="Site" value={form.site} onChange={(e) => setForm({ ...form, site: e.target.value })} />
           <input className="border p-2 rounded" placeholder="Environment" value={form.environment} onChange={(e) => setForm({ ...form, environment: e.target.value })} />
-          <select className="border p-2 rounded" value={form.supernet_id ?? ""} onChange={(e) => setForm({ ...form, supernet_id: e.target.value ? Number(e.target.value) : undefined })}>
-            <option value="">Supernet</option>
-            {(supernets ?? []).map((s: any) => (
-              <option key={s.id} value={s.id}>
-                {s.name} - {s.cidr}
-              </option>
-            ))}
-          </select>
         </div>
         <button className="bg-black text-white rounded px-3 py-2" onClick={() => create.mutate()} disabled={create.isPending}>
           Create
         </button>
-        {create.error && <div className="text-sm text-red-600">{(create.error as any)?.response?.data?.detail || "Error"}</div>}
+        {create.error && (
+          <div className="text-sm text-red-600">
+            {(() => {
+              const error = create.error as any;
+              const detail = error?.response?.data?.detail;
+              if (Array.isArray(detail)) {
+                return detail.map((err: any, idx: number) => (
+                  <div key={idx}>{err.msg || err.message || JSON.stringify(err)}</div>
+                ));
+              }
+              return detail || error?.message || "Error creating subnet";
+            })()}
+          </div>
+        )}
       </div>
 
       <div className="overflow-x-auto">

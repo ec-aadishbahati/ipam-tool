@@ -1,7 +1,20 @@
 from typing import Optional
-from sqlalchemy import String, Integer, ForeignKey
+from sqlalchemy import String, Integer, ForeignKey, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.session import Base
+import enum
+
+
+class AllocationMode(enum.Enum):
+    MANUAL = "manual"
+    AUTO_MASK = "auto_mask"
+    AUTO_HOSTS = "auto_hosts"
+
+
+class GatewayMode(enum.Enum):
+    MANUAL = "manual"
+    AUTO_FIRST = "auto_first"
+    NONE = "none"
 
 
 class Subnet(Base):
@@ -16,6 +29,19 @@ class Subnet(Base):
     vlan_id: Mapped[int | None] = mapped_column(ForeignKey("vlans.id"), nullable=True)
     site: Mapped[str | None] = mapped_column(String(50), nullable=True)
     environment: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    
+    allocation_mode: Mapped[str] = mapped_column(
+        String(20), 
+        default="manual",
+        nullable=False
+    )
+    gateway_mode: Mapped[str] = mapped_column(
+        String(20),
+        default="manual", 
+        nullable=False
+    )
+    subnet_mask: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    host_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     supernet: Mapped[Optional["Supernet"]] = relationship("Supernet", back_populates="subnets")
     purpose: Mapped[Optional["Purpose"]] = relationship("Purpose", back_populates="subnets")

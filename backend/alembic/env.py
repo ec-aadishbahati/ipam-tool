@@ -26,7 +26,12 @@ def _strip_query(url: str) -> str:
 
 
 def _sync_dsn() -> str:
-    url = _strip_query(settings.DATABASE_URL or "")
+    url = settings.DATABASE_URL or ""
+    if url.startswith("sqlite+aiosqlite:"):
+        return url.replace("sqlite+aiosqlite:", "sqlite:")
+    elif url.startswith("sqlite:"):
+        return url
+    url = _strip_query(url)
     return url.replace("postgresql+asyncpg://", "postgresql://")
 
 
@@ -44,10 +49,15 @@ def run_migrations_offline():
 
 
 def run_migrations_online():
+    url = _sync_dsn()
+    connect_args = {}
+    if not url.startswith("sqlite:"):
+        connect_args = {"sslmode": "require"}
+    
     engine = create_engine(
-        _sync_dsn(),
+        url,
         poolclass=pool.NullPool,
-        connect_args={"sslmode": "require"},
+        connect_args=connect_args,
     )
     with engine.connect() as connection:
         context.configure(
