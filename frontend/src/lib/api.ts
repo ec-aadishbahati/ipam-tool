@@ -1,17 +1,27 @@
 import axios from "axios";
-import { getAccessToken, getRefreshToken, setTokens, clearTokens } from "./auth";
+import {
+  getAccessToken,
+  getRefreshToken,
+  setTokens,
+  clearTokens,
+} from "./auth";
 
-const base =
-  (import.meta.env.VITE_API_BASE as string | undefined) || "/api";
+const rawBase = import.meta.env.VITE_API_BASE as string | undefined;
 
-if (!import.meta.env.VITE_API_BASE) {
+if (!rawBase) {
+  if (import.meta.env.PROD) {
+    throw new Error("VITE_API_BASE is required in production");
+  }
   console.warn("VITE_API_BASE is not set; defaulting to /api");
-} else if (
-  !base.startsWith("https://") &&
-  !base.startsWith("http://localhost")
-) {
+}
+
+const base = rawBase ?? "/api";
+
+if (rawBase && !rawBase.startsWith("https://") && !rawBase.startsWith("http://localhost")) {
   console.warn("VITE_API_BASE should be HTTPS in production");
 }
+
+console.log(`API base URL resolved to ${base}`);
 
 export const api = axios.create({
   baseURL: base,
