@@ -11,12 +11,14 @@ Backend environment (.env or Fly secrets):
 - JWT_REFRESH_SECRET_KEY=...
 - ACCESS_TOKEN_EXPIRE_MINUTES=15
 - REFRESH_TOKEN_EXPIRE_DAYS=7
-- CORS_ORIGINS=comma-separated exact origins (e.g., https://ipam.yourdomain.com). May be left empty when using regex only.
+- CORS_ORIGINS=<frontend-origin> (comma-separated exact origins, e.g., https://ipam.yourdomain.com; required unless CORS_ORIGIN_REGEX is set)
 - CORS_ORIGIN_REGEX=regex for previews (e.g., ^https://([a-z0-9-]+)\.vercel\.app$)
 - LOG_LEVEL=info
 - ENV=production
 - ADMIN_USERNAME=admin
 - ADMIN_PASSWORD=changeme123!
+
+At least one of `CORS_ORIGINS` or `CORS_ORIGIN_REGEX` must be set.
 
 Frontend environment (.env.production or Vercel env):
 - VITE_API_BASE=https://ipam-tool.fly.dev/api
@@ -38,7 +40,7 @@ Seeding admin:
 
 Deploy
 - Fly.io (backend):
-  - Set secrets: DATABASE_URL (with sslmode=require), JWT_SECRET_KEY, JWT_REFRESH_SECRET_KEY, CORS_ORIGIN_REGEX (and optionally CORS_ORIGINS), ADMIN_USERNAME, ADMIN_PASSWORD.
+- Set secrets: DATABASE_URL (with sslmode=require), JWT_SECRET_KEY, JWT_REFRESH_SECRET_KEY, CORS_ORIGINS (or CORS_ORIGIN_REGEX), ADMIN_USERNAME, ADMIN_PASSWORD.
   - fly deploy -a ipam-tool
 - Vercel (frontend):
   - Set VITE_API_BASE=https://ipam-tool.fly.dev/api

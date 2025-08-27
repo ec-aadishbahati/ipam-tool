@@ -36,6 +36,15 @@ if settings.CORS_ORIGIN_REGEX:
     cors_kwargs["allow_origin_regex"] = settings.CORS_ORIGIN_REGEX
     logger.info(f"CORS origin regex configured: {settings.CORS_ORIGIN_REGEX}")
 
+if (
+    cors_kwargs["allow_credentials"]
+    and not origin_list
+    and not settings.CORS_ORIGIN_REGEX
+):
+    raise RuntimeError(
+        "CORS_ORIGINS must be defined when allow_credentials=True"
+    )
+
 app.add_middleware(CORSMiddleware, **cors_kwargs)
 logger.info("CORS middleware configured successfully")
 
