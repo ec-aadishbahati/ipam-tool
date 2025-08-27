@@ -1,11 +1,15 @@
 import axios from "axios";
 import { getAccessToken, getRefreshToken, setTokens, clearTokens } from "./auth";
 
-const base = import.meta.env.VITE_API_BASE as string | undefined;
+const base =
+  (import.meta.env.VITE_API_BASE as string | undefined) || "/api";
 
-if (!base) {
-  console.warn("VITE_API_BASE is not set");
-} else if (!base.startsWith("https://") && !base.startsWith("http://localhost")) {
+if (!import.meta.env.VITE_API_BASE) {
+  console.warn("VITE_API_BASE is not set; defaulting to /api");
+} else if (
+  !base.startsWith("https://") &&
+  !base.startsWith("http://localhost")
+) {
   console.warn("VITE_API_BASE should be HTTPS in production");
 }
 

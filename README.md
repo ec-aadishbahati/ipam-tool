@@ -19,7 +19,7 @@ Backend environment (.env or Fly secrets):
 - ADMIN_PASSWORD=changeme123!
 
 Frontend environment (.env.production or Vercel env):
-- VITE_API_BASE=https://ipam-tool.fly.dev
+- VITE_API_BASE=https://ipam-tool.fly.dev/api
 
 CORS policy:
 - Do not hardcode origins. Load from env.
@@ -41,7 +41,7 @@ Deploy
   - Set secrets: DATABASE_URL (with sslmode=require), JWT_SECRET_KEY, JWT_REFRESH_SECRET_KEY, CORS_ORIGIN_REGEX (and optionally CORS_ORIGINS), ADMIN_USERNAME, ADMIN_PASSWORD.
   - fly deploy -a ipam-tool
 - Vercel (frontend):
-  - Set VITE_API_BASE=https://ipam-tool.fly.dev
+  - Set VITE_API_BASE=https://ipam-tool.fly.dev/api
   - vercel deploy --prod
 
 CI/CD via GitHub
@@ -63,7 +63,7 @@ CI/CD via GitHub
   - Root Directory: frontend
   - Build Command: npm run build
   - Output Directory: dist
-  - Environment Variables (Production & Preview): VITE_API_BASE=https://ipam-tool.fly.dev
+  - Environment Variables (Production & Preview): VITE_API_BASE=https://ipam-tool.fly.dev/api
   - Ensure Production Protection is disabled or configured as desired.
   - Note: The GitHub Action at .github/workflows/vercel-deploy.yml is disabled and can be ignored (kept only for future/manual use).
 

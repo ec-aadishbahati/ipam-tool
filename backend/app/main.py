@@ -26,6 +26,7 @@ cors_kwargs = {
     "allow_credentials": True,
     "allow_methods": ["*"],
     "allow_headers": ["*"],
+    "allow_origins": ["*"],
 }
 origin_list = _parse_origins(settings.CORS_ORIGINS)
 if origin_list:
