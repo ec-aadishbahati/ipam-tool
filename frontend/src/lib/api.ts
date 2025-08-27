@@ -25,13 +25,19 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
+  const isAuthEndpoint = config.url?.includes('/auth/');
   const token = getAccessToken();
-  if (!token) {
+  
+  if (!token && !isAuthEndpoint) {
     window.location.href = "/login";
     return Promise.reject(new Error("no access token"));
   }
-  config.headers = config.headers ?? {};
-  (config.headers as any).Authorization = `Bearer ${token}`;
+  
+  if (token) {
+    config.headers = config.headers ?? {};
+    (config.headers as any).Authorization = `Bearer ${token}`;
+  }
+  
   return config;
 });
 
