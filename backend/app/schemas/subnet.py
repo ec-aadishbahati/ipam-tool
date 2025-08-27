@@ -1,4 +1,4 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, model_validator
 from app.core.validators import validate_cidr_format, validate_ip_address_format, validate_gateway_in_subnet
 
 
@@ -18,24 +18,34 @@ class SubnetBase(BaseModel):
     subnet_mask: int | None = None
     host_count: int | None = None
 
-    @validator('cidr')
-    def validate_cidr(cls, v):
-        if v is None:
-            return v
-        return validate_cidr_format(v)
-
-    @validator('gateway_ip')
-    def validate_gateway_ip(cls, v, values):
-        if v is None:
-            return v
+    @model_validator(mode='before')
+    @classmethod
+    def validate_subnet_fields(cls, values):
+        if not isinstance(values, dict):
+            return values
+            
         
-        validate_ip_address_format(v)
-        
+        allocation_mode = values.get('allocation_mode', 'manual')
+        gateway_mode = values.get('gateway_mode', 'manual')
         cidr = values.get('cidr')
-        if cidr and not validate_gateway_in_subnet(v, cidr):
-            raise ValueError(f"Gateway IP {v} is not usable within subnet {cidr}")
+        gateway_ip = values.get('gateway_ip')
         
-        return v
+        if allocation_mode == 'manual':
+            if not cidr or cidr == "":
+                raise ValueError("CIDR is required for manual allocation mode")
+            validate_cidr_format(cidr)
+        elif allocation_mode in ['auto_mask', 'auto_hosts']:
+            pass
+        
+        if gateway_mode == 'manual':
+            if gateway_ip and gateway_ip != "":
+                validate_ip_address_format(gateway_ip)
+                if cidr and not validate_gateway_in_subnet(gateway_ip, cidr):
+                    raise ValueError(f"Gateway IP {gateway_ip} is not usable within subnet {cidr}")
+        elif gateway_mode in ['auto_first', 'none']:
+            pass
+        
+        return values
 
     @validator('allocation_mode')
     def validate_allocation_mode(cls, v):
@@ -71,24 +81,33 @@ class SubnetUpdate(BaseModel):
     subnet_mask: int | None = None
     host_count: int | None = None
 
-    @validator('cidr')
-    def validate_cidr(cls, v):
-        if v is None:
-            return v
-        return validate_cidr_format(v)
-
-    @validator('gateway_ip')
-    def validate_gateway_ip(cls, v, values):
-        if v is None:
-            return v
+    @model_validator(mode='before')
+    @classmethod
+    def validate_subnet_update_fields(cls, values):
+        if not isinstance(values, dict):
+            return values
+            
         
-        validate_ip_address_format(v)
-        
+        allocation_mode = values.get('allocation_mode', 'manual')
+        gateway_mode = values.get('gateway_mode', 'manual')
         cidr = values.get('cidr')
-        if cidr and not validate_gateway_in_subnet(v, cidr):
-            raise ValueError(f"Gateway IP {v} is not usable within subnet {cidr}")
+        gateway_ip = values.get('gateway_ip')
         
-        return v
+        if cidr is not None and cidr != "":
+            if allocation_mode == 'manual':
+                validate_cidr_format(cidr)
+            elif allocation_mode in ['auto_mask', 'auto_hosts']:
+                pass
+        
+        if gateway_ip is not None and gateway_ip != "":
+            if gateway_mode == 'manual':
+                validate_ip_address_format(gateway_ip)
+                if cidr and not validate_gateway_in_subnet(gateway_ip, cidr):
+                    raise ValueError(f"Gateway IP {gateway_ip} is not usable within subnet {cidr}")
+            elif gateway_mode in ['auto_first', 'none']:
+                pass
+        
+        return values
 
     @validator('allocation_mode')
     def validate_allocation_mode(cls, v):
