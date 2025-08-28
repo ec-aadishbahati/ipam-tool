@@ -24,16 +24,21 @@ if not exist "frontend" (
 echo 📋 Setting up Backend...
 cd backend
 
+REM Generate secure admin password
+python -c "from app.core.password_generator import generate_secure_password; print(generate_secure_password(20))" > temp_password.txt
+set /p ADMIN_PASSWORD=<temp_password.txt
+del temp_password.txt
+
 REM Create backend .env file
 echo 📝 Creating backend .env file...
 (
 echo DATABASE_URL=sqlite+aiosqlite:///./ipam.db
-echo JWT_SECRET_KEY=your-secret-key-here-change-in-production
-echo JWT_REFRESH_SECRET_KEY=your-refresh-secret-key-here-change-in-production
+echo JWT_SECRET_KEY=%RANDOM%%RANDOM%%RANDOM%%RANDOM%
+echo JWT_REFRESH_SECRET_KEY=%RANDOM%%RANDOM%%RANDOM%%RANDOM%
 echo ACCESS_TOKEN_EXPIRE_MINUTES=15
 echo REFRESH_TOKEN_EXPIRE_DAYS=7
 echo ADMIN_EMAIL=admin@example.com
-echo ADMIN_PASSWORD=changeme123!
+echo ADMIN_PASSWORD=%ADMIN_PASSWORD%
 echo CORS_ORIGINS=http://localhost:5173,http://localhost:5174
 echo ENV=development
 echo LOG_LEVEL=info
@@ -118,7 +123,9 @@ echo 📚 API Docs: http://localhost:8000/docs
 echo.
 echo 🔐 Login Credentials:
 echo    Email: admin@example.com
-echo    Password: changeme123!
+echo    Password: %ADMIN_PASSWORD%
+echo.
+echo ⚠️  IMPORTANT: You will be required to change this password on first login!
 echo.
 echo ✨ Features Available:
 echo    • Manual CIDR allocation

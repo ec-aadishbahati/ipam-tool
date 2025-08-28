@@ -67,7 +67,9 @@ setup-ipam.bat
 ## 🔐 Default Login Credentials
 
 - **Email:** `admin@example.com`
-- **Password:** `changeme123!`
+- **Password:** Generated during setup (displayed in setup script output)
+
+**Important:** You will be required to change the password on first login for security.
 
 ## 🌟 Available Features
 

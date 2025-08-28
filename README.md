@@ -16,7 +16,7 @@ Backend environment (.env or Fly secrets):
 - LOG_LEVEL=info
 - ENV=production
 - ADMIN_USERNAME=admin
-- ADMIN_PASSWORD=changeme123!
+- ADMIN_PASSWORD=<secure-generated-password>
 
 At least one of `CORS_ORIGINS` or `CORS_ORIGIN_REGEX` must be set.
 

@@ -1,12 +1,14 @@
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from jose import JWTError, jwt
 from app.db.session import get_db
 from app.db.models import User
-from app.schemas.user import UserCreate, UserLogin, UserOut
+from app.schemas.user import UserCreate, UserLogin, UserOut, PasswordChange
 from app.core.security import get_password_hash, verify_password, create_access_token, create_refresh_token
 from app.core.config import settings
+from app.api.deps import get_current_user
 
 router = APIRouter()
 
@@ -16,7 +18,12 @@ async def register(payload: UserCreate, db: AsyncSession = Depends(get_db)):
     q = await db.execute(select(User).where(User.email == payload.email))
     if q.scalar_one_or_none():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
-    user = User(email=payload.email, hashed_password=get_password_hash(payload.password), is_admin=False)
+    user = User(
+        email=payload.email, 
+        hashed_password=get_password_hash(payload.password), 
+        is_admin=False,
+        must_change_password=False
+    )
     db.add(user)
     await db.commit()
     await db.refresh(user)
@@ -29,9 +36,37 @@ async def login(payload: UserLogin, db: AsyncSession = Depends(get_db)):
     user = q.scalar_one_or_none()
     if not user or not verify_password(payload.password, user.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    
     access = create_access_token(user.id)
     refresh = create_refresh_token(user.id)
+    
+    if user.must_change_password:
+        return {
+            "access_token": access,
+            "refresh_token": refresh,
+            "token_type": "bearer",
+            "must_change_password": True,
+            "message": "Password change required on first login"
+        }
+    
     return {"access_token": access, "refresh_token": refresh, "token_type": "bearer"}
+
+
+@router.post("/change-password")
+async def change_password(
+    payload: PasswordChange,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    if not verify_password(payload.old_password, current_user.hashed_password):
+        raise HTTPException(status_code=400, detail="Invalid current password")
+    
+    current_user.hashed_password = get_password_hash(payload.new_password)
+    current_user.must_change_password = False
+    current_user.password_changed_at = datetime.utcnow()
+    
+    await db.commit()
+    return {"message": "Password changed successfully"}
 
 
 @router.post("/refresh")

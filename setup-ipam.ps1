@@ -6,11 +6,18 @@ param(
     [switch]$SkipDependencies,
     [switch]$SkipDatabase,
     [string]$AdminEmail = "admin@example.com",
-    [string]$AdminPassword = "changeme123!"
+    [string]$AdminPassword = ""
 )
 
 Write-Host "IPAM Tool - Automated Setup Script" -ForegroundColor Cyan
 Write-Host "=====================================" -ForegroundColor Cyan
+
+# Generate secure admin password if not provided
+if ([string]::IsNullOrEmpty($AdminPassword)) {
+    $chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*"
+    $AdminPassword = -join ((1..16) | ForEach {$chars[(Get-Random -Maximum $chars.Length)]})
+    Write-Host "Generated secure admin password" -ForegroundColor Green
+}
 
 # Function to check if a command exists
 function Test-Command($cmdname) {
@@ -78,8 +85,8 @@ Set-Location "backend"
 Write-Host "Creating backend .env file..." -ForegroundColor Cyan
 @"
 DATABASE_URL=sqlite+aiosqlite:///./ipam.db
-JWT_SECRET_KEY=your-secret-key-here-change-in-production
-JWT_REFRESH_SECRET_KEY=your-refresh-secret-key-here-change-in-production
+JWT_SECRET_KEY=$(-join ((1..32) | ForEach {[char]((65..90) + (97..122) + (48..57) | Get-Random)}))
+JWT_REFRESH_SECRET_KEY=$(-join ((1..32) | ForEach {[char]((65..90) + (97..122) + (48..57) | Get-Random)}))
 ACCESS_TOKEN_EXPIRE_MINUTES=15
 REFRESH_TOKEN_EXPIRE_DAYS=7
 ADMIN_EMAIL=$AdminEmail
@@ -196,6 +203,8 @@ Write-Host ""
 Write-Host "Login Credentials:" -ForegroundColor Yellow
 Write-Host "   Email: $AdminEmail" -ForegroundColor White
 Write-Host "   Password: $AdminPassword" -ForegroundColor White
+Write-Host ""
+Write-Host "IMPORTANT: You will be required to change this password on first login!" -ForegroundColor Red
 Write-Host ""
 Write-Host "Features Available:" -ForegroundColor Yellow
 Write-Host "   - Manual CIDR allocation" -ForegroundColor White
