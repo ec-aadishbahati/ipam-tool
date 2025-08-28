@@ -4,11 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "../lib/api";
 
 export default function Dashboard() {
-  const { data: supernets } = useQuery({ queryKey: ["supernets"], queryFn: async () => (await api.get("/supernets")).data });
-  const { data: subnets } = useQuery({ queryKey: ["subnets"], queryFn: async () => (await api.get("/subnets")).data });
-  const { data: vlans } = useQuery({ queryKey: ["vlans"], queryFn: async () => (await api.get("/vlans")).data });
-  const { data: devices } = useQuery({ queryKey: ["devices"], queryFn: async () => (await api.get("/devices")).data });
-  const { data: audits } = useQuery({ queryKey: ["audits"], queryFn: async () => (await api.get("/audits")).data });
+  const { data: supernets } = useQuery({ queryKey: ["supernets"], queryFn: async () => (await api.get("/api/supernets")).data });
+  const { data: subnets } = useQuery({ queryKey: ["subnets"], queryFn: async () => (await api.get("/api/subnets")).data });
+  const { data: vlans } = useQuery({ queryKey: ["vlans"], queryFn: async () => (await api.get("/api/vlans")).data });
+  const { data: devices } = useQuery({ queryKey: ["devices"], queryFn: async () => (await api.get("/api/devices")).data });
+  const { data: audits } = useQuery({ queryKey: ["audits"], queryFn: async () => (await api.get("/api/audits")).data });
 
   return (
     <div className="space-y-6">
@@ -34,7 +34,7 @@ export default function Dashboard() {
             <tbody>
               {(audits ?? []).slice(0, 10).map((a: any) => (
                 <tr key={a.id}>
-                  <td className="p-2 border">{new Date(a.created_at).toLocaleString()}</td>
+                  <td className="p-2 border">{new Date(a.timestamp).toLocaleString()}</td>
                   <td className="p-2 border">{a.user_id}</td>
                   <td className="p-2 border">
                     {a.entity_type} #{a.entity_id}

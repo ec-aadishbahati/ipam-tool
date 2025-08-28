@@ -8,7 +8,7 @@ export default function SearchPage() {
   const [q, setQ] = useState({ site: "", environment: "", text: "" });
   const { data, refetch, isFetching } = useQuery({
     queryKey: ["search", q],
-    queryFn: async () => (await api.get("/search", { params: q })).data,
+    queryFn: async () => (await api.get("/api/search", { params: q })).data,
     enabled: false,
   });
 

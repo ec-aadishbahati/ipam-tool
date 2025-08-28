@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "../lib/api";
 
 export default function Audits() {
-  const { data, isLoading, error } = useQuery({ queryKey: ["audits"], queryFn: async () => (await api.get("/audits")).data });
+  const { data, isLoading, error } = useQuery({ queryKey: ["audits"], queryFn: async () => (await api.get("/api/audits")).data });
 
   if (isLoading) return <div>Loading…</div>;
   if (error) return <div className="text-red-600">Failed to load</div>;
@@ -27,7 +27,7 @@ export default function Audits() {
           <tbody>
             {(data ?? []).map((a: any) => (
               <tr key={a.id}>
-                <td className="p-2 border">{new Date(a.created_at).toLocaleString()}</td>
+                <td className="p-2 border">{new Date(a.timestamp).toLocaleString()}</td>
                 <td className="p-2 border">{a.user_id}</td>
                 <td className="p-2 border">
                   {a.entity_type} #{a.entity_id}

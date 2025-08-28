@@ -6,13 +6,13 @@ import { api } from "../lib/api";
 
 export default function VLANs() {
   const qc = useQueryClient();
-  const { data } = useQuery({ queryKey: ["vlans"], queryFn: async () => (await api.get("/vlans")).data });
-  const { data: purposes } = useQuery({ queryKey: ["purposes"], queryFn: async () => (await api.get("/purposes")).data });
+  const { data } = useQuery({ queryKey: ["vlans"], queryFn: async () => (await api.get("/api/vlans")).data });
+  const { data: purposes } = useQuery({ queryKey: ["purposes"], queryFn: async () => (await api.get("/api/purposes")).data });
   const [form, setForm] = useState({ site: "", environment: "", vlan_id: "", name: "", purpose_id: undefined as number | undefined });
 
   const create = useMutation({
     mutationFn: async () =>
-      (await api.post("/vlans", { ...form, vlan_id: form.vlan_id ? Number(form.vlan_id) : undefined, purpose_id: form.purpose_id })).data,
+      (await api.post("/api/vlans", { ...form, vlan_id: form.vlan_id ? Number(form.vlan_id) : undefined, purpose_id: form.purpose_id })).data,
     onSuccess: () => {
       setForm({ site: "", environment: "", vlan_id: "", name: "", purpose_id: undefined });
       qc.invalidateQueries({ queryKey: ["vlans"] });
