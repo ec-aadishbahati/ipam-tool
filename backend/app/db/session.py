@@ -13,30 +13,25 @@ def _strip_query(url: str) -> str:
 
 
 def _create_ssl_context():
-    """Create SSL context optimized for Fly.io PostgreSQL connections"""
+    """Create secure SSL context with proper certificate validation"""
     import logging
     import os
     
     logger = logging.getLogger(__name__)
-    fly_region = os.environ.get('FLY_REGION', 'unknown')
-    fly_app_name = os.environ.get('FLY_APP_NAME', 'unknown')
-    
-    logger.info(f"Creating SSL context - Fly.io ENV: {fly_region}, App: {fly_app_name}")
-    
     ssl_ctx = ssl.create_default_context()
     
-    if settings.ENV == "production" or "sslmode=require" in settings.DATABASE_URL:
-        logger.info("Production mode: Using permissive SSL for Fly.io internal connections")
-        ssl_ctx.check_hostname = False  # Fly.io uses internal hostnames
-        ssl_ctx.verify_mode = ssl.CERT_NONE  # Allow self-signed certs for internal connections
-        
-        ssl_ctx.set_ciphers('ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS')
-        logger.info("SSL context configured for Fly.io internal database connections")
-        
-    else:
-        logger.info("Development mode: Using minimal SSL verification")
+    if settings.ENV == "development" and os.getenv("DISABLE_SSL_VERIFY") == "true":
+        logger.warning("SSL verification disabled for development - NOT FOR PRODUCTION")
         ssl_ctx.check_hostname = False
         ssl_ctx.verify_mode = ssl.CERT_NONE
+    else:
+        logger.info("SSL verification enabled for secure connections")
+        ssl_ctx.check_hostname = True
+        ssl_ctx.verify_mode = ssl.CERT_REQUIRED
+        
+        ssl_ctx.set_ciphers('ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS')
+        
+        ssl_ctx.minimum_version = ssl.TLSVersion.TLSv1_2
         
     return ssl_ctx
 

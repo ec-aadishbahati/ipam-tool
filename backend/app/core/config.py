@@ -1,3 +1,5 @@
+import re
+from pydantic import validator
 from pydantic_settings import BaseSettings
 
 
@@ -12,9 +14,36 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "info"
     ENV: str = "production"
     
-    ADMIN_USERNAME: str = "admin"
-    ADMIN_PASSWORD: str = "changeme123!"
-    ADMIN_EMAIL: str = "admin@example.com"
+    ADMIN_USERNAME: str
+    ADMIN_PASSWORD: str
+    ADMIN_EMAIL: str
+
+    @validator('ADMIN_PASSWORD')
+    def validate_admin_password(cls, v):
+        if len(v) < 12:
+            raise ValueError('Admin password must be at least 12 characters')
+        if not re.search(r'[A-Z]', v):
+            raise ValueError('Admin password must contain uppercase letter')
+        if not re.search(r'[a-z]', v):
+            raise ValueError('Admin password must contain lowercase letter')
+        if not re.search(r'\d', v):
+            raise ValueError('Admin password must contain number')
+        if not re.search(r'[!@#$%^&*(),.?":{}|<>]', v):
+            raise ValueError('Admin password must contain special character')
+        return v
+
+    @validator('CORS_ORIGINS')
+    def validate_cors_origins(cls, v, values):
+        if not v and values.get('ENV') == 'production':
+            raise ValueError('CORS_ORIGINS required in production')
+        
+        if v:
+            origins = [o.strip() for o in v.split(',')]
+            for origin in origins:
+                if origin == "*" and values.get('ENV') == 'production':
+                    raise ValueError('Wildcard CORS origins not allowed in production')
+        
+        return v
 
     class Config:
         env_file = ".env"

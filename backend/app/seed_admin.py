@@ -7,9 +7,12 @@ from app.db.models.user import User
 from app.core.security import get_password_hash
 
 
-ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "changeme123!")
-ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@example.com")
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL")
+
+if not ADMIN_USERNAME or not ADMIN_PASSWORD or not ADMIN_EMAIL:
+    raise ValueError("ADMIN_USERNAME, ADMIN_PASSWORD, and ADMIN_EMAIL environment variables are required")
 
 
 async def ensure_columns(session: AsyncSession) -> None:

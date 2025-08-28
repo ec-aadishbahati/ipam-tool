@@ -13,7 +13,15 @@ validate_environment()
 def _parse_origins(origins_str: str) -> list[str]:
     if not origins_str:
         return []
-    return [o.strip() for o in origins_str.replace(" ", "").split(",") if o.strip()]
+    origins = [o.strip() for o in origins_str.replace(" ", "").split(",") if o.strip()]
+    
+    for origin in origins:
+        if origin == "*":
+            raise ValueError("Wildcard origins not allowed with credentials")
+        if not origin.startswith(("http://", "https://")):
+            raise ValueError(f"Invalid origin format: {origin}")
+    
+    return origins
 
 
 app = FastAPI(title="IPAM")
@@ -24,28 +32,46 @@ logger = logging.getLogger(__name__)
 
 cors_kwargs = {
     "allow_credentials": True,
-    "allow_methods": ["*"],
-    "allow_headers": ["*"],
-    "allow_origins": ["*"],
+    "allow_methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Explicit methods
+    "allow_headers": ["Authorization", "Content-Type", "Accept"],   # Explicit headers
+    "allow_origins": [],  # No default - must be explicitly set
 }
+
 origin_list = _parse_origins(settings.CORS_ORIGINS)
 if origin_list:
     cors_kwargs["allow_origins"] = origin_list
     logger.info(f"CORS origins configured: {origin_list}")
-if settings.CORS_ORIGIN_REGEX:
-    cors_kwargs["allow_origin_regex"] = settings.CORS_ORIGIN_REGEX
-    logger.info(f"CORS origin regex configured: {settings.CORS_ORIGIN_REGEX}")
 
-if (
-    cors_kwargs["allow_credentials"]
-    and not origin_list
-    and not settings.CORS_ORIGIN_REGEX
-):
+if settings.CORS_ORIGIN_REGEX:
+    try:
+        import re
+        re.compile(settings.CORS_ORIGIN_REGEX)
+        cors_kwargs["allow_origin_regex"] = settings.CORS_ORIGIN_REGEX
+        logger.info(f"CORS origin regex configured: {settings.CORS_ORIGIN_REGEX}")
+    except re.error as e:
+        raise ValueError(f"Invalid CORS origin regex: {e}")
+
+if not origin_list and not settings.CORS_ORIGIN_REGEX:
     raise RuntimeError(
-        "CORS_ORIGINS must be defined when allow_credentials=True"
+        "At least one of CORS_ORIGINS or CORS_ORIGIN_REGEX must be configured"
     )
 
 app.add_middleware(CORSMiddleware, **cors_kwargs)
+
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    
+    if settings.ENV == "production":
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    
+    return response
+
 logger.info("CORS middleware configured successfully")
 
 
@@ -59,16 +85,23 @@ async def healthz():
     try:
         async with AsyncSession(engine) as session:
             await session.execute(text("SELECT 1"))
+        
         return {"status": "ok", "database": "connected"}
+    
     except Exception as e:
-        import traceback
-        return {
-            "status": "degraded", 
-            "database": "disconnected", 
-            "error": str(e),
-            "error_type": type(e).__name__,
-            "traceback": traceback.format_exc()
-        }
+        logger.error(f"Health check failed: {str(e)}", exc_info=True)
+        
+        if settings.ENV == "development":
+            return {
+                "status": "degraded",
+                "database": "disconnected",
+                "error": str(e)[:100]  # Truncate error message
+            }
+        else:
+            return {
+                "status": "degraded",
+                "database": "disconnected"
+            }
 
 
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
@@ -80,3 +113,6 @@ app.include_router(devices.router, prefix="/api/devices", tags=["devices"])
 app.include_router(ip_assignments.router, prefix="/api/ip-assignments", tags=["ip-assignments"])
 app.include_router(audits.router, prefix="/api/audits", tags=["audits"])
 app.include_router(search.router, prefix="/api/search", tags=["search"])
+
+from app.api.routes import health
+app.include_router(health.router, prefix="/api", tags=["health"])

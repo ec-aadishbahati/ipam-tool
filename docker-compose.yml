@@ -14,8 +14,8 @@ services:
       context: ./backend
     environment:
       DATABASE_URL: postgresql+asyncpg://ipam:ipam@db:5432/ipam
-      JWT_SECRET_KEY: dev-secret
-      JWT_REFRESH_SECRET_KEY: dev-refresh
+      JWT_SECRET_KEY: dev-jwt-secret-key-for-development-only-change-in-production
+      JWT_REFRESH_SECRET_KEY: dev-refresh-secret-key-for-development-only-change-in-production
       ACCESS_TOKEN_EXPIRE_MINUTES: "15"
       REFRESH_TOKEN_EXPIRE_DAYS: "7"
       CORS_ORIGINS: https://ipam-tool.vercel.app,https://localhost:5173,http://localhost:5173
