@@ -34,7 +34,7 @@ export default function Dashboard() {
             <tbody>
               {(audits ?? []).slice(0, 10).map((a: any) => (
                 <tr key={a.id}>
-                  <td className="p-2 border">{new Date(a.created_at).toLocaleString()}</td>
+                  <td className="p-2 border">{new Date(a.timestamp).toLocaleString()}</td>
                   <td className="p-2 border">{a.user_id}</td>
                   <td className="p-2 border">
                     {a.entity_type} #{a.entity_id}
