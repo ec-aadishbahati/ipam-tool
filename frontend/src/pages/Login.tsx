@@ -15,7 +15,7 @@ export default function Login() {
     e.preventDefault();
     setErr("");
     try {
-      const res = await api.post("/auth/login", { email, password: pw });
+      const res = await api.post("/api/auth/login", { email, password: pw });
       setTokens(res.data.access_token, res.data.refresh_token);
       nav("/", { replace: true });
     } catch (e: any) {

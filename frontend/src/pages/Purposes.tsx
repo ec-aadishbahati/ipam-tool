@@ -6,11 +6,11 @@ import { api } from "../lib/api";
 
 export default function Purposes() {
   const qc = useQueryClient();
-  const { data } = useQuery({ queryKey: ["purposes"], queryFn: async () => (await api.get("/purposes")).data });
+  const { data } = useQuery({ queryKey: ["purposes"], queryFn: async () => (await api.get("/api/purposes")).data });
   const [form, setForm] = useState({ name: "", description: "", category: "" });
 
   const create = useMutation({
-    mutationFn: async () => (await api.post("/purposes", form)).data,
+    mutationFn: async () => (await api.post("/api/purposes", form)).data,
     onSuccess: () => {
       setForm({ name: "", description: "", category: "" });
       qc.invalidateQueries({ queryKey: ["purposes"] });

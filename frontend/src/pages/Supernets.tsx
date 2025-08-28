@@ -8,10 +8,10 @@ import { useNavigate } from "react-router-dom";
 export default function Supernets() {
   const qc = useQueryClient();
   const nav = useNavigate();
-  const { data, isLoading, error } = useQuery({ queryKey: ["supernets"], queryFn: async () => (await api.get("/supernets")).data });
+  const { data, isLoading, error } = useQuery({ queryKey: ["supernets"], queryFn: async () => (await api.get("/api/supernets")).data });
   const [form, setForm] = useState({ name: "", cidr: "", site: "", environment: "" });
   const create = useMutation({
-    mutationFn: async () => (await api.post("/supernets", form)).data,
+    mutationFn: async () => (await api.post("/api/supernets", form)).data,
     onSuccess: () => {
       setForm({ name: "", cidr: "", site: "", environment: "" });
       qc.invalidateQueries({ queryKey: ["supernets"] });

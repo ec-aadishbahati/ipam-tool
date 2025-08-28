@@ -8,20 +8,20 @@ export default function IpAssignments() {
   const qc = useQueryClient();
   const { data, isLoading: ipLoading, error: ipError } = useQuery({ 
     queryKey: ["ip-assignments"], 
-    queryFn: async () => (await api.get("/ip-assignments")).data 
+    queryFn: async () => (await api.get("/api/ip-assignments")).data 
   });
   const { data: subnets, isLoading: subnetsLoading, error: subnetsError } = useQuery({ 
     queryKey: ["subnets"], 
-    queryFn: async () => (await api.get("/subnets")).data 
+    queryFn: async () => (await api.get("/api/subnets")).data 
   });
   const { data: devices, isLoading: devicesLoading, error: devicesError } = useQuery({ 
     queryKey: ["devices"], 
-    queryFn: async () => (await api.get("/devices")).data 
+    queryFn: async () => (await api.get("/api/devices")).data 
   });
   const [form, setForm] = useState({ subnet_id: undefined as number | undefined, device_id: undefined as number | undefined, ip_address: "", role: "" });
 
   const create = useMutation({
-    mutationFn: async () => (await api.post("/ip-assignments", form)).data,
+    mutationFn: async () => (await api.post("/api/ip-assignments", form)).data,
     onSuccess: () => {
       setForm({ subnet_id: undefined, device_id: undefined, ip_address: "", role: "" });
       qc.invalidateQueries({ queryKey: ["ip-assignments"] });

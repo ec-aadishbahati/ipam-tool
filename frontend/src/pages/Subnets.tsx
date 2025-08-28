@@ -6,10 +6,10 @@ import { api } from "../lib/api";
 
 export default function Subnets() {
   const qc = useQueryClient();
-  const { data: subnets } = useQuery({ queryKey: ["subnets"], queryFn: async () => (await api.get("/subnets")).data });
-  const { data: purposes } = useQuery({ queryKey: ["purposes"], queryFn: async () => (await api.get("/purposes")).data });
-  const { data: vlans } = useQuery({ queryKey: ["vlans"], queryFn: async () => (await api.get("/vlans")).data });
-  const { data: supernets } = useQuery({ queryKey: ["supernets"], queryFn: async () => (await api.get("/supernets")).data });
+  const { data: subnets } = useQuery({ queryKey: ["subnets"], queryFn: async () => (await api.get("/api/subnets")).data });
+  const { data: purposes } = useQuery({ queryKey: ["purposes"], queryFn: async () => (await api.get("/api/purposes")).data });
+  const { data: vlans } = useQuery({ queryKey: ["vlans"], queryFn: async () => (await api.get("/api/vlans")).data });
+  const { data: supernets } = useQuery({ queryKey: ["supernets"], queryFn: async () => (await api.get("/api/supernets")).data });
 
   const [form, setForm] = useState({
     name: "",
@@ -28,7 +28,7 @@ export default function Subnets() {
   });
 
   const create = useMutation({
-    mutationFn: async () => (await api.post("/subnets", form)).data,
+    mutationFn: async () => (await api.post("/api/subnets", form)).data,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["subnets"] });
     },

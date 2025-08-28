@@ -6,12 +6,12 @@ import { api } from "../lib/api";
 
 export default function Devices() {
   const qc = useQueryClient();
-  const { data } = useQuery({ queryKey: ["devices"], queryFn: async () => (await api.get("/devices")).data });
-  const { data: vlans } = useQuery({ queryKey: ["vlans"], queryFn: async () => (await api.get("/vlans")).data });
+  const { data } = useQuery({ queryKey: ["devices"], queryFn: async () => (await api.get("/api/devices")).data });
+  const { data: vlans } = useQuery({ queryKey: ["vlans"], queryFn: async () => (await api.get("/api/vlans")).data });
   const [form, setForm] = useState({ name: "", role: "", hostname: "", location: "", vlan_id: undefined as number | undefined });
 
   const create = useMutation({
-    mutationFn: async () => (await api.post("/devices", form)).data,
+    mutationFn: async () => (await api.post("/api/devices", form)).data,
     onSuccess: () => {
       setForm({ name: "", role: "", hostname: "", location: "", vlan_id: undefined });
       qc.invalidateQueries({ queryKey: ["devices"] });
