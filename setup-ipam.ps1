@@ -89,6 +89,7 @@ JWT_SECRET_KEY=$(-join ((1..32) | ForEach {[char]((65..90) + (97..122) + (48..57
 JWT_REFRESH_SECRET_KEY=$(-join ((1..32) | ForEach {[char]((65..90) + (97..122) + (48..57) | Get-Random)}))
 ACCESS_TOKEN_EXPIRE_MINUTES=15
 REFRESH_TOKEN_EXPIRE_DAYS=7
+ADMIN_USERNAME=admin
 ADMIN_EMAIL=$AdminEmail
 ADMIN_PASSWORD=$AdminPassword
 CORS_ORIGINS=http://localhost:5173,http://localhost:5174
