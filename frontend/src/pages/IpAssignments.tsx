@@ -6,9 +6,18 @@ import { api } from "../lib/api";
 
 export default function IpAssignments() {
   const qc = useQueryClient();
-  const { data } = useQuery({ queryKey: ["ip-assignments"], queryFn: async () => (await api.get("/ip-assignments")).data });
-  const { data: subnets } = useQuery({ queryKey: ["subnets"], queryFn: async () => (await api.get("/subnets")).data });
-  const { data: devices } = useQuery({ queryKey: ["devices"], queryFn: async () => (await api.get("/devices")).data });
+  const { data, isLoading: ipLoading, error: ipError } = useQuery({ 
+    queryKey: ["ip-assignments"], 
+    queryFn: async () => (await api.get("/ip-assignments")).data 
+  });
+  const { data: subnets, isLoading: subnetsLoading, error: subnetsError } = useQuery({ 
+    queryKey: ["subnets"], 
+    queryFn: async () => (await api.get("/subnets")).data 
+  });
+  const { data: devices, isLoading: devicesLoading, error: devicesError } = useQuery({ 
+    queryKey: ["devices"], 
+    queryFn: async () => (await api.get("/devices")).data 
+  });
   const [form, setForm] = useState({ subnet_id: undefined as number | undefined, device_id: undefined as number | undefined, ip_address: "", role: "" });
 
   const create = useMutation({
@@ -47,6 +56,9 @@ export default function IpAssignments() {
           Create
         </button>
         {create.error && <div className="text-sm text-red-600">{(create.error as any)?.response?.data?.detail || "Error"}</div>}
+        {subnetsError && <div className="text-sm text-red-600">Failed to load subnets: {(subnetsError as any)?.response?.data?.detail || "Network error"}</div>}
+        {devicesError && <div className="text-sm text-red-600">Failed to load devices: {(devicesError as any)?.response?.data?.detail || "Network error"}</div>}
+        {ipError && <div className="text-sm text-red-600">Failed to load IP assignments: {(ipError as any)?.response?.data?.detail || "Network error"}</div>}
       </div>
 
       <div className="overflow-x-auto">

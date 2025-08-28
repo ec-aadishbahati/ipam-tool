@@ -16,7 +16,20 @@ import Audits from "./pages/Audits";
 import SearchPage from "./pages/Search";
 import { RequireAuth } from "./pages/RequireAuth";
 
-const qc = new QueryClient();
+const qc = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error) => {
+        if ((error as any)?.response?.status === 401 && failureCount < 2) {
+          return true;
+        }
+        return failureCount < 1;
+      },
+      staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
