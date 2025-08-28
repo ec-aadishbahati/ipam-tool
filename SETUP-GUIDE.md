@@ -104,7 +104,7 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 cd frontend
 npm install
 
-# Create .env.local with: VITE_API_BASE=http://localhost:8000/api
+# Create .env.local with: VITE_API_BASE=http://localhost:8000
 npm run dev
 ```
 
