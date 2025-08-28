@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "../lib/api";
 
 export default function Audits() {
-  const { data, isLoading, error } = useQuery({ queryKey: ["audits"], queryFn: async () => (await api.get("/audits")).data });
+  const { data, isLoading, error } = useQuery({ queryKey: ["audits"], queryFn: async () => (await api.get("/api/audits")).data });
 
   if (isLoading) return <div>Loading…</div>;
   if (error) return <div className="text-red-600">Failed to load</div>;
