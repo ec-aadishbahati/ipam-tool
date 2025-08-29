@@ -80,3 +80,7 @@ CI/CD via GitHub
   - Verify:
     - Backend: https://ipam-tool.fly.dev/healthz returns {"status":"ok"}
     - Frontend: visit /login and other deep links (SPA rewrites prevent 404). If redirected to Vercel login, disable Production Protection or share bypass.
+
+## Development Notes
+
+This repository has been verified for access and basic code quality checks.
