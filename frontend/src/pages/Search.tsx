@@ -8,6 +8,7 @@ export default function SearchPage() {
     environment: "", 
     text: "", 
     purpose_id: "", 
+    category_id: "",
     vlan_id: "", 
     assigned_to: "", 
     has_gateway: "" 
@@ -15,6 +16,7 @@ export default function SearchPage() {
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [importType, setImportType] = useState<'subnets' | 'devices'>('subnets');
   const { data: purposes } = useQuery({ queryKey: ["purposes"], queryFn: async () => (await api.get("/api/purposes")).data });
+  const { data: categories } = useQuery({ queryKey: ["categories"], queryFn: async () => (await api.get("/api/categories")).data });
   const { data: vlans } = useQuery({ queryKey: ["vlans"], queryFn: async () => (await api.get("/api/vlans")).data });
   
   const { data, refetch, isFetching } = useQuery({
@@ -49,19 +51,25 @@ export default function SearchPage() {
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold">Advanced Search</h2>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-4 gap-2">
         <input className="border rounded p-2" placeholder="Site" value={q.site} onChange={(e) => setQ({ ...q, site: e.target.value })} />
         <input className="border rounded p-2" placeholder="Environment" value={q.environment} onChange={(e) => setQ({ ...q, environment: e.target.value })} />
         <input className="border rounded p-2" placeholder="Text Search" value={q.text} onChange={(e) => setQ({ ...q, text: e.target.value })} />
+        <input className="border rounded p-2" placeholder="Assigned To" value={q.assigned_to} onChange={(e) => setQ({ ...q, assigned_to: e.target.value })} />
         <select className="border rounded p-2" value={q.purpose_id} onChange={(e) => setQ({ ...q, purpose_id: e.target.value })}>
           <option value="">Any Purpose</option>
           {(purposes ?? []).map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+        <select className="border rounded p-2" value={q.category_id} onChange={(e) => setQ({ ...q, category_id: e.target.value })}>
+          <option value="">Any Category</option>
+          {(categories ?? []).map((cat: any) => (
+            <option key={cat.id} value={cat.id}>{cat.name}</option>
+          ))}
         </select>
         <select className="border rounded p-2" value={q.vlan_id} onChange={(e) => setQ({ ...q, vlan_id: e.target.value })}>
           <option value="">Any VLAN</option>
           {(vlans ?? []).map((v: any) => <option key={v.id} value={v.id}>{v.vlan_id} - {v.name}</option>)}
         </select>
-        <input className="border rounded p-2" placeholder="Assigned To" value={q.assigned_to} onChange={(e) => setQ({ ...q, assigned_to: e.target.value })} />
         <select className="border rounded p-2" value={q.has_gateway} onChange={(e) => setQ({ ...q, has_gateway: e.target.value })}>
           <option value="">Any Gateway</option>
           <option value="true">Has Gateway</option>

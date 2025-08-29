@@ -11,6 +11,7 @@ const links = [
   { to: "/ip-assignments", label: "IP Assignments" },
   { to: "/vlans", label: "VLANs" },
   { to: "/purposes", label: "Purposes" },
+  { to: "/categories", label: "Categories" },
   { to: "/audits", label: "Audits" },
   { to: "/search", label: "Search" },
 ];

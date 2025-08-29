@@ -52,7 +52,7 @@ def run_migrations_online():
     url = _sync_dsn()
     connect_args = {}
     if not url.startswith("sqlite:"):
-        connect_args = {"sslmode": "require"}
+        connect_args = {"sslmode": "disable"}
     
     engine = create_engine(
         url,

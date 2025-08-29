@@ -1,5 +1,6 @@
 from .user import User
 from .purpose import Purpose
+from .category import Category
 from .vlan import Vlan
 from .supernet import Supernet
 from .subnet import Subnet
@@ -11,6 +12,7 @@ from .audit_log import AuditLog
 __all__ = [
     "User",
     "Purpose",
+    "Category",
     "Vlan",
     "Supernet",
     "Subnet",
