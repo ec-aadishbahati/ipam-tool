@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.core.startup import validate_environment
 from app.db.session import engine
-from app.api.routes import auth, purposes, supernets, subnets, vlans
+from app.api.routes import auth, purposes, categories, supernets, subnets, vlans
 from app.api.routes import devices, racks, ip_assignments, audits, search, export
 
 validate_environment()
@@ -105,6 +105,7 @@ async def healthz():
 
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(purposes.router, prefix="/api/purposes", tags=["purposes"])
+app.include_router(categories.router, prefix="/api/categories", tags=["categories"])
 app.include_router(supernets.router, prefix="/api/supernets", tags=["supernets"])
 app.include_router(subnets.router, prefix="/api/subnets", tags=["subnets"])
 app.include_router(vlans.router, prefix="/api/vlans", tags=["vlans"])

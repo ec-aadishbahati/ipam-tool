@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
+from sqlalchemy.orm import selectinload
 from app.api.deps import get_current_user
 from app.db.session import get_db
 from app.db.models import Purpose
@@ -12,7 +13,7 @@ router = APIRouter()
 
 @router.get("", response_model=list[PurposeOut])
 async def list_purposes(db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
-    res = await db.execute(select(Purpose).order_by(Purpose.name))
+    res = await db.execute(select(Purpose).options(selectinload(Purpose.category)).order_by(Purpose.name))
     return res.scalars().all()
 
 
@@ -21,7 +22,7 @@ async def create_purpose(payload: PurposeCreate, db: AsyncSession = Depends(get_
     q = await db.execute(select(Purpose).where(Purpose.name == payload.name))
     if q.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Purpose already exists")
-    obj = Purpose(name=payload.name, description=payload.description, category=payload.category)
+    obj = Purpose(name=payload.name, description=payload.description, category_id=payload.category_id)
     db.add(obj)
     await db.commit()
     await db.refresh(obj)
@@ -31,21 +32,21 @@ async def create_purpose(payload: PurposeCreate, db: AsyncSession = Depends(get_
 
 @router.patch("/{purpose_id}", response_model=PurposeOut)
 async def update_purpose(purpose_id: int, payload: PurposeUpdate, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
-    res = await db.execute(select(Purpose).where(Purpose.id == purpose_id))
+    res = await db.execute(select(Purpose).options(selectinload(Purpose.category)).where(Purpose.id == purpose_id))
     obj = res.scalar_one_or_none()
     if not obj:
         raise HTTPException(status_code=404, detail="Not found")
-    before = {"id": obj.id, "name": obj.name, "description": obj.description, "category": obj.category}
+    before = {"id": obj.id, "name": obj.name, "description": obj.description, "category_id": obj.category_id}
     if payload.name is not None:
         obj.name = payload.name
     if payload.description is not None:
         obj.description = payload.description
-    if payload.category is not None:
-        obj.category = payload.category
+    if payload.category_id is not None:
+        obj.category_id = payload.category_id
     db.add(obj)
     await db.commit()
     await db.refresh(obj)
-    after = {"id": obj.id, "name": obj.name, "description": obj.description, "category": obj.category}
+    after = {"id": obj.id, "name": obj.name, "description": obj.description, "category_id": obj.category_id}
     await record_audit(db, entity_type="purpose", entity_id=obj.id, action="update", before=before, after=after, user_id=user.id)
     return obj
 

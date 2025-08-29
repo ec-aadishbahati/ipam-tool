@@ -7,12 +7,13 @@ import { EditableRow } from "../components/EditableRow";
 export default function Purposes() {
   const qc = useQueryClient();
   const { data } = useQuery({ queryKey: ["purposes"], queryFn: async () => (await api.get("/api/purposes")).data });
-  const [form, setForm] = useState({ name: "", description: "", category: "" });
+  const { data: categories } = useQuery({ queryKey: ["categories"], queryFn: async () => (await api.get("/api/categories")).data });
+  const [form, setForm] = useState({ name: "", description: "", category_id: undefined as number | undefined });
 
   const create = useMutation({
     mutationFn: async () => (await api.post("/api/purposes", form)).data,
     onSuccess: () => {
-      setForm({ name: "", description: "", category: "" });
+      setForm({ name: "", description: "", category_id: undefined });
       qc.invalidateQueries({ queryKey: ["purposes"] });
     },
   });
@@ -23,7 +24,14 @@ export default function Purposes() {
       <div className="border rounded p-3 space-y-2">
         <div className="grid grid-cols-2 gap-2">
           <input className="border p-2 rounded" placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          <input className="border p-2 rounded" placeholder="Category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
+          <select className="border p-2 rounded" value={form.category_id ?? ""} onChange={(e) => setForm({ ...form, category_id: e.target.value ? Number(e.target.value) : undefined })}>
+            <option value="">Category</option>
+            {(categories ?? []).map((c: any) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
           <input className="border p-2 rounded col-span-2" placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
         </div>
         <button className="bg-black text-white rounded px-3 py-2" onClick={() => create.mutate()} disabled={create.isPending}>
@@ -50,7 +58,17 @@ export default function Purposes() {
                 entityType="purposes"
                 fields={[
                   { key: 'name', label: 'Name', editable: true },
-                  { key: 'category', label: 'Category', editable: true },
+                  { 
+                    key: 'category_id', 
+                    label: 'Category', 
+                    type: 'select',
+                    editable: true,
+                    options: (categories ?? []).map((c: any) => ({value: c.id, label: c.name})),
+                    render: (value: any) => {
+                      const category = categories?.find((c: any) => c.id === value);
+                      return category ? category.name : value;
+                    }
+                  },
                   { key: 'description', label: 'Description', editable: true },
                 ]}
               />
