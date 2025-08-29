@@ -4,9 +4,9 @@ from sqlalchemy import select, delete
 from sqlalchemy.orm import selectinload
 from app.api.deps import get_current_user
 from app.db.session import get_db
-from app.db.models import Subnet, Purpose, Vlan
+from app.db.models import Subnet, Purpose, Vlan, Supernet
 from app.schemas.subnet import SubnetCreate, SubnetOut, SubnetUpdate
-from app.services.ipam import cidr_overlap, is_gateway_valid, calculate_subnet_utilization, get_valid_ip_range
+from app.services.ipam import cidr_overlap, is_gateway_valid, calculate_subnet_utilization, get_valid_ip_range, calculate_supernet_utilization
 from app.services.audit import record_audit
 from app.services.subnet_allocation import allocate_subnet_cidr, calculate_gateway_ip
 
@@ -80,6 +80,15 @@ async def create_subnet(payload: SubnetCreate, db: AsyncSession = Depends(get_db
     await db.commit()
     await db.refresh(obj)
     await record_audit(db, entity_type="subnet", entity_id=obj.id, action="create", before=None, after={"id": obj.id, "cidr": obj.cidr}, user_id=user.id)
+    
+    if obj.supernet_id:
+        supernet_res = await db.execute(select(Supernet).options(selectinload(Supernet.subnets)).where(Supernet.id == obj.supernet_id))
+        supernet = supernet_res.scalar_one_or_none()
+        if supernet:
+            supernet.utilization_percentage = await calculate_supernet_utilization(supernet.subnets, db)
+            db.add(supernet)
+            await db.commit()
+    
     return obj
 
 
@@ -147,14 +156,44 @@ async def update_subnet(subnet_id: int, payload: SubnetUpdate, db: AsyncSession 
         "supernet_id": obj.supernet_id,
     }
     await record_audit(db, entity_type="subnet", entity_id=obj.id, action="update", before=before, after=after, user_id=user.id)
+    
+    supernet_ids = set()
+    if before.get("supernet_id"):
+        supernet_ids.add(before["supernet_id"])
+    if obj.supernet_id:
+        supernet_ids.add(obj.supernet_id)
+    
+    for supernet_id in supernet_ids:
+        supernet_res = await db.execute(select(Supernet).options(selectinload(Supernet.subnets)).where(Supernet.id == supernet_id))
+        supernet = supernet_res.scalar_one_or_none()
+        if supernet:
+            supernet.utilization_percentage = await calculate_supernet_utilization(supernet.subnets, db)
+            db.add(supernet)
+    
+    if supernet_ids:
+        await db.commit()
+    
     return obj
 
 
 @router.delete("/{subnet_id}")
 async def delete_subnet(subnet_id: int, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+    subnet_res = await db.execute(select(Subnet).where(Subnet.id == subnet_id))
+    subnet = subnet_res.scalar_one_or_none()
+    supernet_id = subnet.supernet_id if subnet else None
+    
     await db.execute(delete(Subnet).where(Subnet.id == subnet_id))
     await db.commit()
     await record_audit(db, entity_type="subnet", entity_id=subnet_id, action="delete", before=None, after=None, user_id=user.id)
+    
+    if supernet_id:
+        supernet_res = await db.execute(select(Supernet).options(selectinload(Supernet.subnets)).where(Supernet.id == supernet_id))
+        supernet = supernet_res.scalar_one_or_none()
+        if supernet:
+            supernet.utilization_percentage = await calculate_supernet_utilization(supernet.subnets, db)
+            db.add(supernet)
+            await db.commit()
+    
     return {"message": "deleted"}
 
 
@@ -252,6 +291,15 @@ async def import_subnets_csv(file: UploadFile, db: AsyncSession = Depends(get_db
     
     if imported_count > 0:
         await db.commit()
+        
+        supernet_res = await db.execute(select(Supernet).options(selectinload(Supernet.subnets)))
+        supernets = supernet_res.scalars().all()
+        for supernet in supernets:
+            supernet.utilization_percentage = await calculate_supernet_utilization(supernet.subnets, db)
+            db.add(supernet)
+        
+        if supernets:
+            await db.commit()
     
     return {
         "imported_count": imported_count,
