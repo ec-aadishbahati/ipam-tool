@@ -1,5 +1,3 @@
-import React from "react";
-
 import { useState } from "react";
 import { api } from "../lib/api";
 import { setTokens } from "../lib/auth";

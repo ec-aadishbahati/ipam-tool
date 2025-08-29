@@ -6,7 +6,7 @@ from app.api.deps import get_current_user
 from app.db.session import get_db
 from app.db.models import Supernet, Subnet
 from app.schemas.supernet import SupernetCreate, SupernetOut, SupernetUpdate
-from app.services.ipam import cidr_overlap, calculate_subnet_utilization
+from app.services.ipam import cidr_overlap, calculate_subnet_utilization, calculate_subnet_utilization
 from app.db.models import IpAssignment
 import ipaddress
 from app.services.audit import record_audit
@@ -26,6 +26,7 @@ async def list_supernets(db: AsyncSession = Depends(get_db), user=Depends(get_cu
         for subnet in supernet.subnets:
             subnet_res = await db.execute(select(IpAssignment).where(IpAssignment.subnet_id == subnet.id))
             assigned_ips = [assignment.ip_address for assignment in subnet_res.scalars().all()]
+            
             network = ipaddress.ip_network(subnet.cidr, strict=False)
             total_assigned += len(assigned_ips)
             if network.prefixlen == network.max_prefixlen:
@@ -89,28 +90,19 @@ async def delete_supernet(supernet_id: int, db: AsyncSession = Depends(get_db), 
 
 @router.get("/export/csv")
 async def export_supernets_csv(db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
-    from fastapi.responses import StreamingResponse
-    import csv
-    import io
+    from app.utils.csv_export import create_csv_response
     
     res = await db.execute(select(Supernet))
     supernets = res.scalars().all()
     
-    output = io.StringIO()
-    writer = csv.writer(output)
-    writer.writerow(["name", "cidr", "site", "environment"])
-    
+    data = []
     for supernet in supernets:
-        writer.writerow([
-            supernet.name or "",
-            supernet.cidr,
-            supernet.site or "",
-            supernet.environment or ""
-        ])
+        data.append({
+            "name": supernet.name or "",
+            "cidr": supernet.cidr,
+            "site": supernet.site or "",
+            "environment": supernet.environment or ""
+        })
     
-    output.seek(0)
-    return StreamingResponse(
-        io.BytesIO(output.getvalue().encode()),
-        media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=supernets.csv"}
-    )
+    headers = ["name", "cidr", "site", "environment"]
+    return create_csv_response(data, headers, "supernets.csv")

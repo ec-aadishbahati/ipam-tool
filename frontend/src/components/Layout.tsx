@@ -1,5 +1,3 @@
-import React from "react";
-
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { clearTokens } from "../lib/auth";
 
