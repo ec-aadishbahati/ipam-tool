@@ -1,18 +1,15 @@
 import asyncio
-import os
 from sqlalchemy import text, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import AsyncSessionLocal
 from app.db.models.user import User
 from app.core.security import get_password_hash
+from app.core.config import settings
 
 
-ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
-ADMIN_EMAIL = os.getenv("ADMIN_EMAIL")
-
-if not ADMIN_PASSWORD or not ADMIN_EMAIL:
-    raise ValueError("ADMIN_PASSWORD and ADMIN_EMAIL environment variables are required")
+ADMIN_USERNAME = settings.ADMIN_USERNAME
+ADMIN_PASSWORD = settings.ADMIN_PASSWORD
+ADMIN_EMAIL = settings.ADMIN_EMAIL
 
 
 async def ensure_columns(session: AsyncSession) -> None:
