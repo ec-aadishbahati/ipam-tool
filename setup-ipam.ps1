@@ -146,7 +146,7 @@ Set-Location "../frontend"
 
 # Create frontend .env.local file
 Write-Host "Creating frontend .env.local file..." -ForegroundColor Cyan
-"VITE_API_BASE=http://localhost:8000/api" | Out-File -FilePath ".env.local" -Encoding ASCII
+"VITE_API_BASE=http://localhost:8000" | Out-File -FilePath ".env.local" -Encoding ASCII
 Write-Host "Frontend .env.local file created" -ForegroundColor Green
 
 # Install frontend dependencies
