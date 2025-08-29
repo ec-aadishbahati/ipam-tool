@@ -6,7 +6,7 @@ from app.api.deps import get_current_user
 from app.db.session import get_db
 from app.db.models import Supernet, Subnet
 from app.schemas.supernet import SupernetCreate, SupernetOut, SupernetUpdate
-from app.services.ipam import cidr_overlap, calculate_subnet_utilization
+from app.services.ipam import cidr_overlap, calculate_supernet_utilization, calculate_subnet_utilization
 from app.db.models import IpAssignment
 import ipaddress
 from app.services.audit import record_audit
@@ -20,23 +20,7 @@ async def list_supernets(db: AsyncSession = Depends(get_db), user=Depends(get_cu
     supernets = res.scalars().all()
     
     for supernet in supernets:
-        total_assigned = 0
-        total_usable = 0
-        
-        for subnet in supernet.subnets:
-            subnet_res = await db.execute(select(IpAssignment).where(IpAssignment.subnet_id == subnet.id))
-            assigned_ips = [assignment.ip_address for assignment in subnet_res.scalars().all()]
-            
-            network = ipaddress.ip_network(subnet.cidr, strict=False)
-            total_assigned += len(assigned_ips)
-            if network.prefixlen == network.max_prefixlen:
-                total_usable += 1
-            elif network.prefixlen == 31:
-                total_usable += 2
-            else:
-                total_usable += len(list(network.hosts()))
-        
-        supernet.utilization_percentage = (total_assigned / total_usable * 100) if total_usable > 0 else 0.0
+        supernet.utilization_percentage = await calculate_supernet_utilization(supernet.subnets, db)
     
     return supernets
 

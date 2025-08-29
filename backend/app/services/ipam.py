@@ -1,4 +1,6 @@
 import ipaddress
+from typing import Sequence
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 def cidr_overlap(cidr_a: str, cidr_b: str) -> bool:
@@ -25,20 +27,63 @@ def is_gateway_valid(gateway: str, cidr: str) -> bool:
     return addr in net and (net.prefixlen == net.max_prefixlen or addr in list(net.hosts()))
 
 
+def get_usable_address_count(network: ipaddress._BaseNetwork) -> int:
+    """Get count of usable IP addresses in a network, optimized for performance"""
+    if network.prefixlen == network.max_prefixlen:
+        return 1
+    elif network.version == 4 and network.prefixlen == 31:
+        return 2
+    elif network.version == 6 and network.prefixlen == 127:
+        return 2
+    
+    if network.version == 4:
+        return network.num_addresses - 2
+    else:
+        return network.num_addresses
+
+
 def calculate_subnet_utilization(cidr: str, assigned_ips: list[str]) -> float:
     """Calculate utilization percentage for a subnet"""
     network = ipaddress.ip_network(cidr, strict=False)
-    if network.prefixlen == network.max_prefixlen:
-        total_usable = 1
-    elif network.prefixlen == 31:
-        total_usable = 2
-    else:
-        total_usable = len(list(network.hosts()))
+    total_usable = get_usable_address_count(network)
     
     if total_usable == 0:
         return 0.0
     
     return (len(assigned_ips) / total_usable) * 100
+
+
+async def calculate_supernet_utilization(subnets: Sequence, db: AsyncSession) -> float:
+    """
+    Calculate supernet utilization percentage based on allocated subnet space.
+    Uses bulk queries for performance optimization.
+    """
+    if not subnets:
+        return 0.0
+    
+    supernet_cidr = None
+    for subnet in subnets:
+        if subnet.supernet:
+            supernet_cidr = subnet.supernet.cidr
+            break
+    
+    if not supernet_cidr:
+        return 0.0
+    
+    supernet_network = ipaddress.ip_network(supernet_cidr, strict=False)
+    total_supernet_ips = get_usable_address_count(supernet_network)
+    
+    if total_supernet_ips == 0:
+        return 0.0
+    
+    total_allocated_ips = 0
+    
+    for subnet in subnets:
+        subnet_network = ipaddress.ip_network(subnet.cidr, strict=False)
+        subnet_ips = get_usable_address_count(subnet_network)
+        total_allocated_ips += subnet_ips
+    
+    return (total_allocated_ips / total_supernet_ips) * 100
 
 
 def get_valid_ip_range(cidr: str) -> tuple[str, str]:
