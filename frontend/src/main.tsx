@@ -13,7 +13,6 @@ import Racks from "./pages/Racks";
 import IpAssignments from "./pages/IpAssignments";
 import VLANs from "./pages/VLANs";
 import Purposes from "./pages/Purposes";
-import Categories from "./pages/Categories";
 import Audits from "./pages/Audits";
 import SearchPage from "./pages/Search";
 import { RequireAuth } from "./pages/RequireAuth";
@@ -51,7 +50,6 @@ const router = createBrowserRouter([
       { path: "ip-assignments", element: <IpAssignments /> },
       { path: "vlans", element: <VLANs /> },
       { path: "purposes", element: <Purposes /> },
-      { path: "categories", element: <Categories /> },
       { path: "audits", element: <Audits /> },
       { path: "search", element: <SearchPage /> },
     ],

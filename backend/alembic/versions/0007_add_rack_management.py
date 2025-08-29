@@ -9,8 +9,8 @@ from alembic import op
 import sqlalchemy as sa
 
 
-revision = '0007_rack_mgmt'
-down_revision = '0006_add_username'
+revision = '0007_add_rack_management'
+down_revision = '0006_add_username_to_users'
 branch_labels = None
 depends_on = None
 

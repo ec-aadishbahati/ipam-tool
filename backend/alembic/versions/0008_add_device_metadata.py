@@ -9,8 +9,8 @@ from alembic import op
 import sqlalchemy as sa
 
 
-revision = '0008_device_meta'
-down_revision = '0007_rack_mgmt'
+revision = '0008_add_device_metadata'
+down_revision = '0007_add_rack_management'
 branch_labels = None
 depends_on = None
 
