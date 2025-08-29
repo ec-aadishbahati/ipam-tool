@@ -134,6 +134,9 @@ class SubnetOut(SubnetBase):
     gateway_mode: str
     subnet_mask: int | None = None
     host_count: int | None = None
+    utilization_percentage: float | None = None
+    first_ip: str | None = None
+    last_ip: str | None = None
 
     class Config:
         from_attributes = True

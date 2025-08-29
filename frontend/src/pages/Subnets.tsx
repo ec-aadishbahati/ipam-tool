@@ -147,10 +147,13 @@ export default function Subnets() {
             <tr>
               <th className="text-left p-2 border">Name</th>
               <th className="text-left p-2 border">CIDR</th>
+              <th className="text-left p-2 border">Utilization</th>
+              <th className="text-left p-2 border">Valid IP Range</th>
               <th className="text-left p-2 border">Purpose</th>
               <th className="text-left p-2 border">VLAN</th>
               <th className="text-left p-2 border">Site</th>
               <th className="text-left p-2 border">Env</th>
+              <th className="text-left p-2 border">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -158,10 +161,19 @@ export default function Subnets() {
               <tr key={s.id}>
                 <td className="p-2 border">{s.name}</td>
                 <td className="p-2 border">{s.cidr}</td>
+                <td className="p-2 border">
+                  <span className={`px-2 py-1 rounded text-sm ${s.utilization_percentage > 80 ? 'bg-red-100 text-red-800' : s.utilization_percentage > 60 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                    {s.utilization_percentage?.toFixed(1)}%
+                  </span>
+                </td>
+                <td className="p-2 border">{s.first_ip} - {s.last_ip}</td>
                 <td className="p-2 border">{s.purpose_id}</td>
                 <td className="p-2 border">{s.vlan_id}</td>
                 <td className="p-2 border">{s.site}</td>
                 <td className="p-2 border">{s.environment}</td>
+                <td className="p-2 border">
+                  <button className="text-blue-600 hover:underline mr-2" onClick={() => window.open(`/api/subnets/export/csv`, '_blank')}>Export</button>
+                </td>
               </tr>
             ))}
           </tbody>
