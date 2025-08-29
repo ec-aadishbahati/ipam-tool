@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { api } from "../lib/api";
 import { getErrorMessage } from "../utils/errorHandling";
+import { EditableRow } from "../components/EditableRow";
 
 export default function VLANs() {
   const qc = useQueryClient();
@@ -51,17 +52,33 @@ export default function VLANs() {
               <th className="text-left p-2 border">VLAN ID</th>
               <th className="text-left p-2 border">Name</th>
               <th className="text-left p-2 border">Purpose</th>
+              <th className="text-left p-2 border">Actions</th>
             </tr>
           </thead>
           <tbody>
             {(data ?? []).map((v: any) => (
-              <tr key={v.id}>
-                <td className="p-2 border">{v.site}</td>
-                <td className="p-2 border">{v.environment}</td>
-                <td className="p-2 border">{v.vlan_id}</td>
-                <td className="p-2 border">{v.name}</td>
-                <td className="p-2 border">{v.purpose_id}</td>
-              </tr>
+              <EditableRow
+                key={v.id}
+                entity={v}
+                entityType="vlans"
+                fields={[
+                  { key: 'site', label: 'Site', editable: true },
+                  { key: 'environment', label: 'Environment', editable: true },
+                  { key: 'vlan_id', label: 'VLAN ID', type: 'number', editable: true },
+                  { key: 'name', label: 'Name', editable: true },
+                  { 
+                    key: 'purpose_id', 
+                    label: 'Purpose', 
+                    type: 'select',
+                    editable: true,
+                    options: (purposes ?? []).map((p: any) => ({value: p.id, label: p.name})),
+                    render: (value: any) => {
+                      const purpose = purposes?.find((p: any) => p.id === value);
+                      return purpose ? purpose.name : value;
+                    }
+                  },
+                ]}
+              />
             ))}
           </tbody>
         </table>

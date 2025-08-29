@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { api } from "../lib/api";
 import { getErrorMessage } from "../utils/errorHandling";
+import { EditableRow } from "../components/EditableRow";
 
 export default function Racks() {
   const qc = useQueryClient();
@@ -67,20 +68,46 @@ export default function Racks() {
               <th className="text-left p-2 border">Cooling</th>
               <th className="text-left p-2 border">Location</th>
               <th className="text-left p-2 border">Notes</th>
+              <th className="text-left p-2 border">Actions</th>
             </tr>
           </thead>
           <tbody>
             {(data ?? []).map((r: any) => (
-              <tr key={r.id}>
-                <td className="p-2 border">{r.aisle}</td>
-                <td className="p-2 border">{r.rack_number}</td>
-                <td className="p-2 border">{r.position_count}</td>
-                <td className="p-2 border">{r.power_type}</td>
-                <td className="p-2 border">{r.power_capacity}</td>
-                <td className="p-2 border">{r.cooling_type}</td>
-                <td className="p-2 border">{r.location}</td>
-                <td className="p-2 border">{r.notes}</td>
-              </tr>
+              <EditableRow
+                key={r.id}
+                entity={r}
+                entityType="racks"
+                fields={[
+                  { key: 'aisle', label: 'Aisle', editable: true },
+                  { key: 'rack_number', label: 'Rack #', editable: true },
+                  { key: 'position_count', label: 'Positions', type: 'number', editable: true },
+                  { 
+                    key: 'power_type', 
+                    label: 'Power Type', 
+                    type: 'select',
+                    editable: true,
+                    options: [
+                      {value: 'single-phase', label: 'Single Phase'},
+                      {value: 'three-phase', label: 'Three Phase'},
+                      {value: 'dc', label: 'DC Power'}
+                    ]
+                  },
+                  { key: 'power_capacity', label: 'Power Capacity', editable: true },
+                  { 
+                    key: 'cooling_type', 
+                    label: 'Cooling', 
+                    type: 'select',
+                    editable: true,
+                    options: [
+                      {value: 'air', label: 'Air Cooling'},
+                      {value: 'liquid', label: 'Liquid Cooling'},
+                      {value: 'hybrid', label: 'Hybrid Cooling'}
+                    ]
+                  },
+                  { key: 'location', label: 'Location', editable: true },
+                  { key: 'notes', label: 'Notes', editable: true },
+                ]}
+              />
             ))}
           </tbody>
         </table>

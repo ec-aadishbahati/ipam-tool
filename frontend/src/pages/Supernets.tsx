@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { api } from "../lib/api";
 import { useNavigate } from "react-router-dom";
 import { getErrorMessage } from "../utils/errorHandling";
+import { EditableRow } from "../components/EditableRow";
 
 export default function Supernets() {
   const qc = useQueryClient();
@@ -62,20 +63,27 @@ export default function Supernets() {
             </thead>
             <tbody>
               {(data ?? []).map((s: any) => (
-                <tr key={s.id}>
-                  <td className="p-2 border">{s.name}</td>
-                  <td className="p-2 border">{s.cidr}</td>
-                  <td className="p-2 border">
-                    <span className={`px-2 py-1 rounded text-sm ${s.utilization_percentage > 80 ? 'bg-red-100 text-red-800' : s.utilization_percentage > 60 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
-                      {s.utilization_percentage?.toFixed(1)}%
-                    </span>
-                  </td>
-                  <td className="p-2 border">{s.site}</td>
-                  <td className="p-2 border">{s.environment}</td>
-                  <td className="p-2 border">
-                    <button className="text-blue-600 hover:underline" onClick={() => window.open(`/api/supernets/export/csv`, '_blank')}>Export</button>
-                  </td>
-                </tr>
+                <EditableRow
+                  key={s.id}
+                  entity={s}
+                  entityType="supernets"
+                  fields={[
+                    { key: 'name', label: 'Name', editable: true },
+                    { key: 'cidr', label: 'CIDR', editable: false, render: (value: any) => <span className="font-mono">{value}</span> },
+                    { 
+                      key: 'utilization_percentage', 
+                      label: 'Utilization', 
+                      editable: false,
+                      render: (value: any) => (
+                        <span className={`px-2 py-1 rounded text-sm ${value > 80 ? 'bg-red-100 text-red-800' : value > 60 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                          {value?.toFixed(1)}%
+                        </span>
+                      )
+                    },
+                    { key: 'site', label: 'Site', editable: true },
+                    { key: 'environment', label: 'Environment', editable: true },
+                  ]}
+                />
               ))}
             </tbody>
           </table>

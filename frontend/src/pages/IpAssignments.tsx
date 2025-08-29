@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { api } from "../lib/api";
 import { getErrorMessage } from "../utils/errorHandling";
+import { EditableRow } from "../components/EditableRow";
 
 export default function IpAssignments() {
   const qc = useQueryClient();
@@ -68,16 +69,40 @@ export default function IpAssignments() {
               <th className="text-left p-2 border">Device</th>
               <th className="text-left p-2 border">IP</th>
               <th className="text-left p-2 border">Role</th>
+              <th className="text-left p-2 border">Actions</th>
             </tr>
           </thead>
           <tbody>
             {(data ?? []).map((a: any) => (
-              <tr key={a.id}>
-                <td className="p-2 border">{a.subnet_id}</td>
-                <td className="p-2 border">{a.device_id}</td>
-                <td className="p-2 border">{a.ip_address}</td>
-                <td className="p-2 border">{a.role}</td>
-              </tr>
+              <EditableRow
+                key={a.id}
+                entity={a}
+                entityType="ip-assignments"
+                fields={[
+                  { 
+                    key: 'subnet_id', 
+                    label: 'Subnet', 
+                    editable: false,
+                    render: (value: any) => {
+                      const subnet = subnets?.find((s: any) => s.id === value);
+                      return subnet ? `${subnet.name} - ${subnet.cidr}` : value;
+                    }
+                  },
+                  { 
+                    key: 'device_id', 
+                    label: 'Device', 
+                    type: 'select',
+                    editable: true,
+                    options: (devices ?? []).map((d: any) => ({value: d.id, label: d.name})),
+                    render: (value: any) => {
+                      const device = devices?.find((d: any) => d.id === value);
+                      return device ? device.name : value;
+                    }
+                  },
+                  { key: 'ip_address', label: 'IP', editable: true, render: (value: any) => <span className="font-mono">{value}</span> },
+                  { key: 'role', label: 'Role', editable: true },
+                ]}
+              />
             ))}
           </tbody>
         </table>
