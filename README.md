@@ -1,4 +1,4 @@
-# ee-ipam
+# ee-spark
 
 Production-grade IPAM monorepo (FastAPI backend + Vite React frontend)
 
@@ -48,10 +48,10 @@ Deploy
 
 CI/CD via GitHub
 - Wire up GitHub
-  - Create an empty private repo in your org (e.g., ee-ipam). Copy the HTTPS URL.
+  - Create an empty private repo in your org (e.g., ee-spark). Copy the HTTPS URL.
   - From repo root:
     - git init
-    - git remote add origin https://github.com/&lt;org&gt;/ee-ipam.git
+    - git remote add origin https://github.com/&lt;org&gt;/ee-spark.git
     - git checkout -b main
     - git add backend frontend .github README.md .gitignore
     - git commit -m "Initial import: IPAM monorepo with Fly/Vercel CI"

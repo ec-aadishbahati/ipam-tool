@@ -32,7 +32,7 @@
 fly secrets set DATABASE_URL="postgresql+asyncpg://..." -a ipam-tool
 fly secrets set JWT_SECRET_KEY="$(openssl rand -base64 32)" -a ipam-tool
 fly secrets set JWT_REFRESH_SECRET_KEY="$(openssl rand -base64 32)" -a ipam-tool
-fly secrets set CORS_ORIGINS="https://ee-ipam.vercel.app" -a ipam-tool
+fly secrets set CORS_ORIGINS="https://ee-spark.vercel.app" -a ipam-tool
 # or, for multiple preview domains
 fly secrets set CORS_ORIGIN_REGEX="^https://([a-z0-9-]+)\.vercel\.app$" -a ipam-tool
 fly secrets set ADMIN_USERNAME="admin" -a ipam-tool
@@ -58,7 +58,7 @@ fly logs -a ipam-tool
 2. **Test CORS preflight:**
    ```bash
    curl -X OPTIONS https://ipam-tool.fly.dev/api/auth/login \
-     -H "Origin: https://ee-ipam.vercel.app" \
+     -H "Origin: https://ee-spark.vercel.app" \
      -H "Access-Control-Request-Method: POST" \
      -i
    ```
