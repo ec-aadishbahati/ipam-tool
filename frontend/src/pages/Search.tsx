@@ -68,7 +68,7 @@ export default function SearchPage() {
         <button className="bg-black text-white rounded px-3 py-2" onClick={() => refetch()} disabled={isFetching}>
           Search
         </button>
-        <button className="border rounded px-3 py-2" onClick={() => window.open('/api/subnets/import/template', '_blank')}>
+        <button className="border rounded px-3 py-2" onClick={() => window.open(`${import.meta.env.VITE_API_BASE || ''}/api/subnets/import/template`, '_blank')}>
           Download Import Template
         </button>
         <div className="flex items-center gap-2">
