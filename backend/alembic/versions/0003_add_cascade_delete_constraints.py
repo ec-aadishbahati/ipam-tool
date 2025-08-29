@@ -9,7 +9,7 @@ from alembic import op
 import sqlalchemy as sa
 
 
-revision = '0003_cascade_delete'
+revision = '0003_add_cascade_delete_constraints'
 down_revision = '0002_add_foreign_keys'
 branch_labels = None
 depends_on = None
