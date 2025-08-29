@@ -7,6 +7,8 @@ class DeviceBase(BaseModel):
     hostname: str | None = None
     location: str | None = None
     vlan_id: int | None = None
+    rack_id: int | None = None
+    rack_position: int | None = None
 
 
 class DeviceCreate(DeviceBase):
@@ -19,6 +21,8 @@ class DeviceUpdate(BaseModel):
     hostname: str | None = None
     location: str | None = None
     vlan_id: int | None = None
+    rack_id: int | None = None
+    rack_position: int | None = None
 
 
 class DeviceOut(DeviceBase):

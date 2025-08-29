@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import Supernets from "./pages/Supernets";
 import Subnets from "./pages/Subnets";
 import Devices from "./pages/Devices";
+import Racks from "./pages/Racks";
 import IpAssignments from "./pages/IpAssignments";
 import VLANs from "./pages/VLANs";
 import Purposes from "./pages/Purposes";
@@ -45,6 +46,7 @@ const router = createBrowserRouter([
       { path: "supernets", element: <Supernets /> },
       { path: "subnets", element: <Subnets /> },
       { path: "devices", element: <Devices /> },
+      { path: "racks", element: <Racks /> },
       { path: "ip-assignments", element: <IpAssignments /> },
       { path: "vlans", element: <VLANs /> },
       { path: "purposes", element: <Purposes /> },
