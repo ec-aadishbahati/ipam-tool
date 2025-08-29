@@ -2,21 +2,13 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../lib/api";
 
-const CATEGORY_OPTIONS = [
-  { value: "Controllers / Management", label: "Controllers / Management" },
-  { value: "Connectivity (P2P / Links)", label: "Connectivity (P2P / Links)" },
-  { value: "Data Networks", label: "Data Networks" },
-  { value: "Pools & Addressing", label: "Pools & Addressing" },
-  { value: "Out-of-Band", label: "Out-of-Band" },
-];
-
 export default function SearchPage() {
   const [q, setQ] = useState({ 
     site: "", 
     environment: "", 
     text: "", 
     purpose_id: "", 
-    category: "",
+    category_id: "",
     vlan_id: "", 
     assigned_to: "", 
     has_gateway: "" 
@@ -24,6 +16,7 @@ export default function SearchPage() {
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [importType, setImportType] = useState<'subnets' | 'devices'>('subnets');
   const { data: purposes } = useQuery({ queryKey: ["purposes"], queryFn: async () => (await api.get("/api/purposes")).data });
+  const { data: categories } = useQuery({ queryKey: ["categories"], queryFn: async () => (await api.get("/api/categories")).data });
   const { data: vlans } = useQuery({ queryKey: ["vlans"], queryFn: async () => (await api.get("/api/vlans")).data });
   
   const { data, refetch, isFetching } = useQuery({
@@ -67,10 +60,10 @@ export default function SearchPage() {
           <option value="">Any Purpose</option>
           {(purposes ?? []).map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
-        <select className="border rounded p-2" value={q.category} onChange={(e) => setQ({ ...q, category: e.target.value })}>
+        <select className="border rounded p-2" value={q.category_id} onChange={(e) => setQ({ ...q, category_id: e.target.value })}>
           <option value="">Any Category</option>
-          {CATEGORY_OPTIONS.map(opt => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          {(categories ?? []).map((cat: any) => (
+            <option key={cat.id} value={cat.id}>{cat.name}</option>
           ))}
         </select>
         <select className="border rounded p-2" value={q.vlan_id} onChange={(e) => setQ({ ...q, vlan_id: e.target.value })}>

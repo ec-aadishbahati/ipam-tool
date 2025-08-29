@@ -4,23 +4,16 @@ import { api } from "../lib/api";
 import { getErrorMessage } from "../utils/errorHandling";
 import { EditableRow } from "../components/EditableRow";
 
-const CATEGORY_OPTIONS = [
-  { value: "Controllers / Management", label: "Controllers / Management" },
-  { value: "Connectivity (P2P / Links)", label: "Connectivity (P2P / Links)" },
-  { value: "Data Networks", label: "Data Networks" },
-  { value: "Pools & Addressing", label: "Pools & Addressing" },
-  { value: "Out-of-Band", label: "Out-of-Band" },
-];
-
 export default function Purposes() {
   const qc = useQueryClient();
   const { data } = useQuery({ queryKey: ["purposes"], queryFn: async () => (await api.get("/api/purposes")).data });
-  const [form, setForm] = useState({ name: "", description: "", category: "" });
+  const { data: categories } = useQuery({ queryKey: ["categories"], queryFn: async () => (await api.get("/api/categories")).data });
+  const [form, setForm] = useState({ name: "", description: "", category_id: "" });
 
   const create = useMutation({
     mutationFn: async () => (await api.post("/api/purposes", form)).data,
     onSuccess: () => {
-      setForm({ name: "", description: "", category: "" });
+      setForm({ name: "", description: "", category_id: "" });
       qc.invalidateQueries({ queryKey: ["purposes"] });
     },
   });
@@ -31,10 +24,10 @@ export default function Purposes() {
       <div className="border rounded p-3 space-y-2">
         <div className="grid grid-cols-2 gap-2">
           <input className="border p-2 rounded" placeholder="Purpose Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          <select className="border p-2 rounded" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
+          <select className="border p-2 rounded" value={form.category_id} onChange={(e) => setForm({ ...form, category_id: e.target.value })}>
             <option value="">Select Category</option>
-            {CATEGORY_OPTIONS.map(opt => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            {(categories ?? []).map((cat: any) => (
+              <option key={cat.id} value={cat.id}>{cat.name}</option>
             ))}
           </select>
           <input className="border p-2 rounded col-span-2" placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
@@ -63,7 +56,7 @@ export default function Purposes() {
                 entityType="purposes"
                 fields={[
                   { key: 'name', label: 'Purpose Name', editable: true },
-                  { key: 'category', label: 'Category', editable: true, type: 'select', options: CATEGORY_OPTIONS },
+                  { key: 'category_id', label: 'Category', editable: true, type: 'select', options: (categories ?? []).map((cat: any) => ({ value: cat.id, label: cat.name })) },
                   { key: 'description', label: 'Description', editable: true },
                 ]}
               />
