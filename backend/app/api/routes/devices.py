@@ -24,6 +24,8 @@ async def create_device(payload: DeviceCreate, db: AsyncSession = Depends(get_db
         role=payload.role,
         hostname=payload.hostname,
         location=payload.location,
+        vendor=payload.vendor,
+        serial_number=payload.serial_number,
         vlan_id=payload.vlan_id,
         rack_id=payload.rack_id,
         rack_position=payload.rack_position,
@@ -41,7 +43,7 @@ async def update_device(device_id: int, payload: DeviceUpdate, db: AsyncSession 
     obj = res.scalar_one_or_none()
     if not obj:
         raise HTTPException(status_code=404, detail="Not found")
-    before = {"name": obj.name, "role": obj.role, "hostname": obj.hostname, "location": obj.location, "vlan_id": obj.vlan_id, "rack_id": obj.rack_id, "rack_position": obj.rack_position}
+    before = {"name": obj.name, "role": obj.role, "hostname": obj.hostname, "location": obj.location, "vendor": obj.vendor, "serial_number": obj.serial_number, "vlan_id": obj.vlan_id, "rack_id": obj.rack_id, "rack_position": obj.rack_position}
     if payload.name is not None:
         obj.name = payload.name
     if payload.role is not None:
@@ -50,6 +52,10 @@ async def update_device(device_id: int, payload: DeviceUpdate, db: AsyncSession 
         obj.hostname = payload.hostname
     if payload.location is not None:
         obj.location = payload.location
+    if payload.vendor is not None:
+        obj.vendor = payload.vendor
+    if payload.serial_number is not None:
+        obj.serial_number = payload.serial_number
     if payload.vlan_id is not None:
         obj.vlan_id = payload.vlan_id
     if payload.rack_id is not None:
@@ -59,7 +65,7 @@ async def update_device(device_id: int, payload: DeviceUpdate, db: AsyncSession 
     db.add(obj)
     await db.commit()
     await db.refresh(obj)
-    after = {"name": obj.name, "role": obj.role, "hostname": obj.hostname, "location": obj.location, "vlan_id": obj.vlan_id, "rack_id": obj.rack_id, "rack_position": obj.rack_position}
+    after = {"name": obj.name, "role": obj.role, "hostname": obj.hostname, "location": obj.location, "vendor": obj.vendor, "serial_number": obj.serial_number, "vlan_id": obj.vlan_id, "rack_id": obj.rack_id, "rack_position": obj.rack_position}
     await record_audit(db, entity_type="device", entity_id=obj.id, action="update", before=before, after=after, user_id=user.id)
     return obj
 
@@ -72,12 +78,37 @@ async def delete_device(device_id: int, db: AsyncSession = Depends(get_db), user
     return {"message": "deleted"}
 
 
+@router.get("/export/csv")
+async def export_devices_csv(db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+    from app.utils.csv_export import create_csv_response
+    
+    res = await db.execute(select(Device).options(selectinload(Device.vlan), selectinload(Device.rack)))
+    devices = res.scalars().all()
+    
+    data = []
+    for device in devices:
+        data.append({
+            "name": device.name or "",
+            "hostname": device.hostname or "",
+            "role": device.role or "",
+            "location": device.location or "",
+            "vendor": device.vendor or "",
+            "serial_number": device.serial_number or "",
+            "vlan": f"{device.vlan.vlan_id} - {device.vlan.name}" if device.vlan else "",
+            "rack": device.rack.name if device.rack else "",
+            "rack_position": str(device.rack_position) if device.rack_position else ""
+        })
+    
+    headers = ["name", "hostname", "role", "location", "vendor", "serial_number", "vlan", "rack", "rack_position"]
+    return create_csv_response(data, headers, "devices.csv")
+
+
 @router.get("/import/template")
 async def get_device_import_template():
     from app.utils.csv_export import create_csv_template
     
-    headers = ["name", "hostname", "role", "location", "ip_address", "vlan", "rack", "rack_position"]
-    sample_data = ["Server-01", "srv01.example.com", "Web Server", "Rack A1", "10.1.0.10", "100 - Production", "Rack-01", "1"]
+    headers = ["name", "hostname", "role", "location", "vendor", "serial_number", "ip_address", "vlan", "rack", "rack_position"]
+    sample_data = ["Server-01", "srv01.example.com", "Web Server", "Rack A1", "Cisco", "ABC123456789", "10.1.0.10", "100 - Production", "Rack-01", "1"]
     return create_csv_template(headers, sample_data, "device_import_template.csv")
 
 
@@ -135,6 +166,8 @@ async def import_devices_csv(file: UploadFile, db: AsyncSession = Depends(get_db
                 hostname=row.get('hostname') or None,
                 role=row.get('role') or None,
                 location=row.get('location') or None,
+                vendor=row.get('vendor') or None,
+                serial_number=row.get('serial_number') or None,
                 vlan_id=vlan_id,
                 rack_id=rack_id,
                 rack_position=rack_position,
