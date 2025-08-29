@@ -6,7 +6,7 @@ from app.api.deps import get_current_user
 from app.db.session import get_db
 from app.db.models import Subnet, Purpose, Vlan, Supernet
 from app.schemas.subnet import SubnetCreate, SubnetOut, SubnetUpdate
-from app.services.ipam import cidr_overlap, is_gateway_valid, calculate_subnet_utilization, get_valid_ip_range, calculate_supernet_utilization
+from app.services.ipam import cidr_overlap, is_gateway_valid, calculate_subnet_utilization, get_valid_ip_range, calculate_supernet_utilization, cidr_contains
 from app.services.audit import record_audit
 from app.services.subnet_allocation import allocate_subnet_cidr, calculate_gateway_ip
 
@@ -270,6 +270,16 @@ async def import_subnets_csv(file: UploadFile, db: AsyncSession = Depends(get_db
                 except ValueError:
                     pass
             
+            supernet_id = None
+            if row['cidr']:
+                supernets_res = await db.execute(select(Supernet))
+                supernets = supernets_res.scalars().all()
+                
+                for supernet in supernets:
+                    if cidr_contains(supernet.cidr, row['cidr']):
+                        supernet_id = supernet.id
+                        break
+            
             subnet = Subnet(
                 name=row.get('name') or None,
                 cidr=row['cidr'],
@@ -279,6 +289,7 @@ async def import_subnets_csv(file: UploadFile, db: AsyncSession = Depends(get_db
                 vlan_id=vlan_id,
                 site=row.get('site') or None,
                 environment=row.get('environment') or None,
+                supernet_id=supernet_id,
                 allocation_mode="manual",
                 gateway_mode="manual" if row.get('gateway_ip') else "none"
             )
