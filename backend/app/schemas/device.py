@@ -6,6 +6,8 @@ class DeviceBase(BaseModel):
     role: str | None = None
     hostname: str | None = None
     location: str | None = None
+    vendor: str | None = None
+    serial_number: str | None = None
     vlan_id: int | None = None
     rack_id: int | None = None
     rack_position: int | None = None
@@ -20,6 +22,8 @@ class DeviceUpdate(BaseModel):
     role: str | None = None
     hostname: str | None = None
     location: str | None = None
+    vendor: str | None = None
+    serial_number: str | None = None
     vlan_id: int | None = None
     rack_id: int | None = None
     rack_position: int | None = None

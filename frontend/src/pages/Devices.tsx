@@ -9,12 +9,12 @@ export default function Devices() {
   const { data } = useQuery({ queryKey: ["devices"], queryFn: async () => (await api.get("/api/devices")).data });
   const { data: vlans } = useQuery({ queryKey: ["vlans"], queryFn: async () => (await api.get("/api/vlans")).data });
   const { data: racks } = useQuery({ queryKey: ["racks"], queryFn: async () => (await api.get("/api/racks")).data });
-  const [form, setForm] = useState({ name: "", role: "", hostname: "", location: "", vlan_id: undefined as number | undefined, rack_id: undefined as number | undefined, rack_position: undefined as number | undefined });
+  const [form, setForm] = useState({ name: "", role: "", hostname: "", location: "", vendor: "", serial_number: "", vlan_id: undefined as number | undefined, rack_id: undefined as number | undefined, rack_position: undefined as number | undefined });
 
   const create = useMutation({
     mutationFn: async () => (await api.post("/api/devices", form)).data,
     onSuccess: () => {
-      setForm({ name: "", role: "", hostname: "", location: "", vlan_id: undefined, rack_id: undefined, rack_position: undefined });
+      setForm({ name: "", role: "", hostname: "", location: "", vendor: "", serial_number: "", vlan_id: undefined, rack_id: undefined, rack_position: undefined });
       qc.invalidateQueries({ queryKey: ["devices"] });
     },
   });
@@ -28,6 +28,8 @@ export default function Devices() {
           <input className="border p-2 rounded" placeholder="Role" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} />
           <input className="border p-2 rounded" placeholder="Hostname" value={form.hostname} onChange={(e) => setForm({ ...form, hostname: e.target.value })} />
           <input className="border p-2 rounded" placeholder="Location" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
+          <input className="border p-2 rounded" placeholder="Vendor" value={form.vendor} onChange={(e) => setForm({ ...form, vendor: e.target.value })} />
+          <input className="border p-2 rounded" placeholder="Serial Number" value={form.serial_number} onChange={(e) => setForm({ ...form, serial_number: e.target.value })} />
           <select className="border p-2 rounded" value={form.vlan_id ?? ""} onChange={(e) => setForm({ ...form, vlan_id: e.target.value ? Number(e.target.value) : undefined })}>
             <option value="">VLAN</option>
             {(vlans ?? []).map((v: any) => (
@@ -60,6 +62,8 @@ export default function Devices() {
               <th className="text-left p-2 border">Role</th>
               <th className="text-left p-2 border">Hostname</th>
               <th className="text-left p-2 border">Location</th>
+              <th className="text-left p-2 border">Vendor</th>
+              <th className="text-left p-2 border">Serial Number</th>
               <th className="text-left p-2 border">VLAN</th>
               <th className="text-left p-2 border">Rack</th>
               <th className="text-left p-2 border">Position</th>
@@ -77,6 +81,8 @@ export default function Devices() {
                   { key: 'role', label: 'Role', editable: true },
                   { key: 'hostname', label: 'Hostname', editable: true },
                   { key: 'location', label: 'Location', editable: true },
+                  { key: 'vendor', label: 'Vendor', editable: true },
+                  { key: 'serial_number', label: 'Serial Number', editable: true },
                   { 
                     key: 'vlan_id', 
                     label: 'VLAN', 
