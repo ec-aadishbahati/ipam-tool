@@ -16,6 +16,8 @@ class Device(Base):
     role: Mapped[str | None] = mapped_column(String(100), nullable=True)
     hostname: Mapped[str | None] = mapped_column(String(255), nullable=True)
     location: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    vendor: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    serial_number: Mapped[str | None] = mapped_column(String(100), nullable=True)
     vlan_id: Mapped[int | None] = mapped_column(ForeignKey("vlans.id"), nullable=True)
     rack_id: Mapped[int | None] = mapped_column(ForeignKey("racks.id"), nullable=True)
     rack_position: Mapped[int | None] = mapped_column(Integer, nullable=True)
