@@ -9,8 +9,8 @@ from alembic import op
 import sqlalchemy as sa
 
 
-revision = '0006_add_username_to_users'
-down_revision = '0005_add_user_password_fields'
+revision = '0006_add_username'
+down_revision = '0005_user_password'
 branch_labels = None
 depends_on = None
 
@@ -20,8 +20,8 @@ def upgrade():
     
     op.create_index(op.f('ix_users_username'), 'users', ['username'], unique=True)
     
-    op.execute("UPDATE users SET username = 'admin' WHERE is_admin = 1")
-    op.execute("UPDATE users SET username = email WHERE is_admin = 0")
+    op.execute("UPDATE users SET username = 'admin' WHERE is_admin = true")
+    op.execute("UPDATE users SET username = email WHERE is_admin = false")
     
     op.alter_column('users', 'username', nullable=False)
 

@@ -9,8 +9,8 @@ from alembic import op
 import sqlalchemy as sa
 from datetime import datetime
 
-revision = '0005_add_user_password_fields'
-down_revision = '0004_add_subnet_allocation_fields'
+revision = '0005_user_password'
+down_revision = '0004_subnet_alloc'
 branch_labels = None
 depends_on = None
 

@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from app.api.deps import get_current_user
 from app.db.session import get_db
-from app.db.models import Subnet, Vlan, Device, Supernet, Purpose
+from app.db.models import Subnet, Vlan, Device, Supernet, Purpose, Category
 
 router = APIRouter()
 
@@ -15,7 +15,7 @@ async def search(
     site: str | None = None,
     environment: str | None = None,
     purpose_id: int | None = None,
-    category: str | None = None,
+    category_id: int | None = None,
     vlan_id: int | None = None,
     assigned_to: str | None = None,
     has_gateway: bool | None = None,
@@ -38,8 +38,10 @@ async def search(
         subnet_query = subnet_query.where(Subnet.environment == environment)
     if purpose_id:
         subnet_query = subnet_query.where(Subnet.purpose_id == purpose_id)
-    if category:
-        subnet_query = subnet_query.join(Purpose).where(Purpose.category == category)
+    if category_id:
+        subnet_query = subnet_query.where(Subnet.purpose_id.in_(
+            select(Purpose.id).where(Purpose.category_id == category_id)
+        ))
     if vlan_id:
         subnet_query = subnet_query.where(Subnet.vlan_id == vlan_id)
     if assigned_to:
@@ -71,8 +73,10 @@ async def search(
         vlan_query = vlan_query.where(Vlan.environment == environment)
     if purpose_id:
         vlan_query = vlan_query.where(Vlan.purpose_id == purpose_id)
-    if category:
-        vlan_query = vlan_query.join(Purpose).where(Purpose.category == category)
+    if category_id:
+        vlan_query = vlan_query.where(Vlan.purpose_id.in_(
+            select(Purpose.id).where(Purpose.category_id == category_id)
+        ))
     
     vlans = await db.execute(vlan_query)
     
