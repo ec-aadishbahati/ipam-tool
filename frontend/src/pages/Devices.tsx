@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { api } from "../lib/api";
 import { getErrorMessage } from "../utils/errorHandling";
+import { EditableRow } from "../components/EditableRow";
 
 export default function Devices() {
   const qc = useQueryClient();
@@ -62,19 +63,45 @@ export default function Devices() {
               <th className="text-left p-2 border">VLAN</th>
               <th className="text-left p-2 border">Rack</th>
               <th className="text-left p-2 border">Position</th>
+              <th className="text-left p-2 border">Actions</th>
             </tr>
           </thead>
           <tbody>
             {(data ?? []).map((d: any) => (
-              <tr key={d.id}>
-                <td className="p-2 border">{d.name}</td>
-                <td className="p-2 border">{d.role}</td>
-                <td className="p-2 border">{d.hostname}</td>
-                <td className="p-2 border">{d.location}</td>
-                <td className="p-2 border">{d.vlan_id}</td>
-                <td className="p-2 border">{d.rack_id ? `${racks?.find((r: any) => r.id === d.rack_id)?.aisle}-${racks?.find((r: any) => r.id === d.rack_id)?.rack_number}` : ""}</td>
-                <td className="p-2 border">{d.rack_position ? `${d.rack_position}U` : ""}</td>
-              </tr>
+              <EditableRow
+                key={d.id}
+                entity={d}
+                entityType="devices"
+                fields={[
+                  { key: 'name', label: 'Name', editable: true },
+                  { key: 'role', label: 'Role', editable: true },
+                  { key: 'hostname', label: 'Hostname', editable: true },
+                  { key: 'location', label: 'Location', editable: true },
+                  { 
+                    key: 'vlan_id', 
+                    label: 'VLAN', 
+                    type: 'select',
+                    editable: true,
+                    options: (vlans ?? []).map((v: any) => ({value: v.id, label: `${v.vlan_id} - ${v.name}`})),
+                    render: (value: any) => {
+                      const vlan = vlans?.find((v: any) => v.id === value);
+                      return vlan ? `${vlan.vlan_id} - ${vlan.name}` : value;
+                    }
+                  },
+                  { 
+                    key: 'rack_id', 
+                    label: 'Rack', 
+                    type: 'select',
+                    editable: true,
+                    options: (racks ?? []).map((r: any) => ({value: r.id, label: `${r.aisle}-${r.rack_number}`})),
+                    render: (value: any) => {
+                      const rack = racks?.find((r: any) => r.id === value);
+                      return rack ? `${rack.aisle}-${rack.rack_number}` : '';
+                    }
+                  },
+                  { key: 'rack_position', label: 'Position', type: 'number', editable: true, render: (value: any) => value ? `${value}U` : '' },
+                ]}
+              />
             ))}
           </tbody>
         </table>

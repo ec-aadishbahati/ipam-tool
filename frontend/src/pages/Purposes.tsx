@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { api } from "../lib/api";
 import { getErrorMessage } from "../utils/errorHandling";
+import { EditableRow } from "../components/EditableRow";
 
 export default function Purposes() {
   const qc = useQueryClient();
@@ -38,15 +39,21 @@ export default function Purposes() {
               <th className="text-left p-2 border">Name</th>
               <th className="text-left p-2 border">Category</th>
               <th className="text-left p-2 border">Description</th>
+              <th className="text-left p-2 border">Actions</th>
             </tr>
           </thead>
           <tbody>
             {(data ?? []).map((p: any) => (
-              <tr key={p.id}>
-                <td className="p-2 border">{p.name}</td>
-                <td className="p-2 border">{p.category}</td>
-                <td className="p-2 border">{p.description}</td>
-              </tr>
+              <EditableRow
+                key={p.id}
+                entity={p}
+                entityType="purposes"
+                fields={[
+                  { key: 'name', label: 'Name', editable: true },
+                  { key: 'category', label: 'Category', editable: true },
+                  { key: 'description', label: 'Description', editable: true },
+                ]}
+              />
             ))}
           </tbody>
         </table>
