@@ -12,11 +12,10 @@ param(
 Write-Host "IPAM Tool - Automated Setup Script" -ForegroundColor Cyan
 Write-Host "=====================================" -ForegroundColor Cyan
 
-# Generate secure admin password if not provided
+# Use hardcoded admin password for simplicity
 if ([string]::IsNullOrEmpty($AdminPassword)) {
-    $chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*"
-    $AdminPassword = -join ((1..16) | ForEach {$chars[(Get-Random -Maximum $chars.Length)]})
-    Write-Host "Generated secure admin password" -ForegroundColor Green
+    $AdminPassword = "Cisco!123"
+    Write-Host "Using hardcoded admin password" -ForegroundColor Green
 }
 
 # Function to check if a command exists

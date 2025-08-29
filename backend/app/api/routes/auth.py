@@ -32,8 +32,13 @@ async def register(payload: UserCreate, db: AsyncSession = Depends(get_db)):
 
 @router.post("/login")
 async def login(payload: UserLogin, db: AsyncSession = Depends(get_db)):
-    q = await db.execute(select(User).where(User.email == payload.email))
+    email_to_check = payload.email
+    if payload.email == "admin":
+        email_to_check = settings.ADMIN_EMAIL
+    
+    q = await db.execute(select(User).where(User.email == email_to_check))
     user = q.scalar_one_or_none()
+    
     if not user or not verify_password(payload.password, user.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     

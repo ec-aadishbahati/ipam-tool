@@ -52,9 +52,8 @@ if settings.CORS_ORIGIN_REGEX:
         raise ValueError(f"Invalid CORS origin regex: {e}")
 
 if not origin_list and not settings.CORS_ORIGIN_REGEX:
-    raise RuntimeError(
-        "At least one of CORS_ORIGINS or CORS_ORIGIN_REGEX must be configured"
-    )
+    cors_kwargs["allow_origins"] = ["http://localhost:5173", "http://localhost:5174"]
+    logger.info("Using default localhost CORS origins for development")
 
 app.add_middleware(CORSMiddleware, **cors_kwargs)
 
