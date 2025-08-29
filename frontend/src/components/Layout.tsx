@@ -8,6 +8,7 @@ const links = [
   { to: "/supernets", label: "Supernets" },
   { to: "/subnets", label: "Subnets" },
   { to: "/devices", label: "Devices" },
+  { to: "/racks", label: "Racks" },
   { to: "/ip-assignments", label: "IP Assignments" },
   { to: "/vlans", label: "VLANs" },
   { to: "/purposes", label: "Purposes" },

@@ -19,7 +19,15 @@ async def list_devices(db: AsyncSession = Depends(get_db), user=Depends(get_curr
 
 @router.post("", response_model=DeviceOut)
 async def create_device(payload: DeviceCreate, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
-    obj = Device(name=payload.name, role=payload.role, hostname=payload.hostname, location=payload.location, vlan_id=payload.vlan_id)
+    obj = Device(
+        name=payload.name,
+        role=payload.role,
+        hostname=payload.hostname,
+        location=payload.location,
+        vlan_id=payload.vlan_id,
+        rack_id=payload.rack_id,
+        rack_position=payload.rack_position,
+    )
     db.add(obj)
     await db.commit()
     await db.refresh(obj)
@@ -33,7 +41,7 @@ async def update_device(device_id: int, payload: DeviceUpdate, db: AsyncSession 
     obj = res.scalar_one_or_none()
     if not obj:
         raise HTTPException(status_code=404, detail="Not found")
-    before = {"name": obj.name, "role": obj.role, "hostname": obj.hostname, "location": obj.location, "vlan_id": obj.vlan_id}
+    before = {"name": obj.name, "role": obj.role, "hostname": obj.hostname, "location": obj.location, "vlan_id": obj.vlan_id, "rack_id": obj.rack_id, "rack_position": obj.rack_position}
     if payload.name is not None:
         obj.name = payload.name
     if payload.role is not None:
@@ -44,10 +52,14 @@ async def update_device(device_id: int, payload: DeviceUpdate, db: AsyncSession 
         obj.location = payload.location
     if payload.vlan_id is not None:
         obj.vlan_id = payload.vlan_id
+    if payload.rack_id is not None:
+        obj.rack_id = payload.rack_id
+    if payload.rack_position is not None:
+        obj.rack_position = payload.rack_position
     db.add(obj)
     await db.commit()
     await db.refresh(obj)
-    after = {"name": obj.name, "role": obj.role, "hostname": obj.hostname, "location": obj.location, "vlan_id": obj.vlan_id}
+    after = {"name": obj.name, "role": obj.role, "hostname": obj.hostname, "location": obj.location, "vlan_id": obj.vlan_id, "rack_id": obj.rack_id, "rack_position": obj.rack_position}
     await record_audit(db, entity_type="device", entity_id=obj.id, action="update", before=before, after=after, user_id=user.id)
     return obj
 
