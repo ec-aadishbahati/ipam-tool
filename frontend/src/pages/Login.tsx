@@ -6,7 +6,7 @@ import { setTokens } from "../lib/auth";
 import { useNavigate } from "react-router-dom";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [pw, setPw] = useState("");
   const [err, setErr] = useState<string>("");
   const nav = useNavigate();
@@ -15,7 +15,7 @@ export default function Login() {
     e.preventDefault();
     setErr("");
     try {
-      const res = await api.post("/api/auth/login", { email, password: pw });
+      const res = await api.post("/api/auth/login", { email: username, password: pw });
       setTokens(res.data.access_token, res.data.refresh_token);
       nav("/", { replace: true });
     } catch (e: any) {
@@ -34,7 +34,7 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center">
       <form onSubmit={onSubmit} className="w-full max-w-sm border rounded p-6 space-y-3">
         <h1 className="text-xl font-semibold">Log in</h1>
-        <input className="border rounded p-2 w-full" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <input className="border rounded p-2 w-full" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} />
         <input className="border rounded p-2 w-full" type="password" placeholder="Password" value={pw} onChange={(e) => setPw(e.target.value)} />
         {err && <div className="text-sm text-red-600">{err}</div>}
         <button className="w-full bg-black text-white rounded py-2" type="submit">
