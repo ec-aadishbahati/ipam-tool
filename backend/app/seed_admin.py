@@ -7,19 +7,19 @@ from app.db.models.user import User
 from app.core.security import get_password_hash
 
 
-ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL")
 
-if not ADMIN_USERNAME or not ADMIN_PASSWORD or not ADMIN_EMAIL:
-    raise ValueError("ADMIN_USERNAME, ADMIN_PASSWORD, and ADMIN_EMAIL environment variables are required")
+if not ADMIN_PASSWORD or not ADMIN_EMAIL:
+    raise ValueError("ADMIN_PASSWORD and ADMIN_EMAIL environment variables are required")
 
 
 async def ensure_columns(session: AsyncSession) -> None:
     res = await session.execute(
-        text("SELECT column_name FROM information_schema.columns WHERE table_name='users'")
+        text("PRAGMA table_info(users)")
     )
-    cols = {row[0] for row in res.fetchall()}
+    cols = {row[1] for row in res.fetchall()}
     if "email" not in cols:
         await session.execute(text("ALTER TABLE users ADD COLUMN email VARCHAR(255)"))
         await session.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_users_email ON users (email)"))

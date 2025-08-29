@@ -95,7 +95,7 @@ pip install -r requirements.txt
 
 # Create .env file with the content from setup scripts
 python init_db.py
-python create_admin.py
+python -m app.seed_admin
 python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 

@@ -5,17 +5,42 @@
 param(
     [switch]$SkipDependencies,
     [switch]$SkipDatabase,
-    [string]$AdminEmail = "admin@example.com",
+    [string]$AdminEmail = "",
     [string]$AdminPassword = ""
 )
 
 Write-Host "IPAM Tool - Automated Setup Script" -ForegroundColor Cyan
 Write-Host "=====================================" -ForegroundColor Cyan
 
-# Use hardcoded admin password for simplicity
+# Read admin credentials from credentials.txt file
+$credentialsFile = Join-Path $PSScriptRoot "credentials.txt"
+if (Test-Path $credentialsFile) {
+    $credentials = Get-Content $credentialsFile
+    if ($credentials.Count -ge 2) {
+        if ([string]::IsNullOrEmpty($AdminEmail)) {
+            $AdminEmail = $credentials[0].Trim()
+            Write-Host "Using admin email from credentials.txt: $AdminEmail" -ForegroundColor Green
+        }
+        if ([string]::IsNullOrEmpty($AdminPassword)) {
+            $AdminPassword = $credentials[1].Trim()
+            Write-Host "Using admin password from credentials.txt" -ForegroundColor Green
+        }
+    } else {
+        Write-Host "Warning: credentials.txt should contain email on first line and password on second line" -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "Warning: credentials.txt not found. Using default values if not provided via parameters." -ForegroundColor Yellow
+}
+
+# Fallback to default values if still empty
+if ([string]::IsNullOrEmpty($AdminEmail)) {
+    $AdminEmail = "admin@example.com"
+    Write-Host "Using fallback admin email: $AdminEmail" -ForegroundColor Yellow
+}
 if ([string]::IsNullOrEmpty($AdminPassword)) {
-    $AdminPassword = "Cisco!123"
-    Write-Host "Using hardcoded admin password" -ForegroundColor Green
+    Write-Host "ERROR: Admin password not found in credentials.txt and not provided via parameter" -ForegroundColor Red
+    Write-Host "Please update credentials.txt with your admin credentials or use -AdminPassword parameter" -ForegroundColor Red
+    exit 1
 }
 
 # Function to check if a command exists
@@ -119,7 +144,7 @@ if (-not $SkipDatabase) {
         if ($LASTEXITCODE -ne 0) { throw "Database initialization failed" }
         Write-Host "Database initialized" -ForegroundColor Green
         
-        python create_admin.py
+        python -m app.seed_admin
         if ($LASTEXITCODE -ne 0) { throw "Admin user creation failed" }
         Write-Host "Admin user created" -ForegroundColor Green
     }
