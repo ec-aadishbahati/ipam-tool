@@ -12,11 +12,17 @@ async def create_admin_user():
         result = await session.execute(select(User).where(User.email == settings.ADMIN_EMAIL))
         existing_user = result.scalar_one_or_none()
         
+        hashed_password = pwd_context.hash(settings.ADMIN_PASSWORD)
+        
         if existing_user:
-            print(f"Admin user {settings.ADMIN_EMAIL} already exists")
+            existing_user.hashed_password = hashed_password
+            existing_user.is_admin = True
+            if hasattr(existing_user, 'must_change_password'):
+                existing_user.must_change_password = True
+            await session.commit()
+            print(f"Admin user {settings.ADMIN_EMAIL} password updated successfully")
             return
         
-        hashed_password = pwd_context.hash(settings.ADMIN_PASSWORD)
         admin_user = User(
             email=settings.ADMIN_EMAIL,
             hashed_password=hashed_password,
