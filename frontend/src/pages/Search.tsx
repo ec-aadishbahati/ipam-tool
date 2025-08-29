@@ -2,12 +2,21 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../lib/api";
 
+const CATEGORY_OPTIONS = [
+  { value: "Controllers / Management", label: "Controllers / Management" },
+  { value: "Connectivity (P2P / Links)", label: "Connectivity (P2P / Links)" },
+  { value: "Data Networks", label: "Data Networks" },
+  { value: "Pools & Addressing", label: "Pools & Addressing" },
+  { value: "Out-of-Band", label: "Out-of-Band" },
+];
+
 export default function SearchPage() {
   const [q, setQ] = useState({ 
     site: "", 
     environment: "", 
     text: "", 
     purpose_id: "", 
+    category: "",
     vlan_id: "", 
     assigned_to: "", 
     has_gateway: "" 
@@ -49,19 +58,25 @@ export default function SearchPage() {
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold">Advanced Search</h2>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-4 gap-2">
         <input className="border rounded p-2" placeholder="Site" value={q.site} onChange={(e) => setQ({ ...q, site: e.target.value })} />
         <input className="border rounded p-2" placeholder="Environment" value={q.environment} onChange={(e) => setQ({ ...q, environment: e.target.value })} />
         <input className="border rounded p-2" placeholder="Text Search" value={q.text} onChange={(e) => setQ({ ...q, text: e.target.value })} />
+        <input className="border rounded p-2" placeholder="Assigned To" value={q.assigned_to} onChange={(e) => setQ({ ...q, assigned_to: e.target.value })} />
         <select className="border rounded p-2" value={q.purpose_id} onChange={(e) => setQ({ ...q, purpose_id: e.target.value })}>
           <option value="">Any Purpose</option>
           {(purposes ?? []).map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+        <select className="border rounded p-2" value={q.category} onChange={(e) => setQ({ ...q, category: e.target.value })}>
+          <option value="">Any Category</option>
+          {CATEGORY_OPTIONS.map(opt => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
         </select>
         <select className="border rounded p-2" value={q.vlan_id} onChange={(e) => setQ({ ...q, vlan_id: e.target.value })}>
           <option value="">Any VLAN</option>
           {(vlans ?? []).map((v: any) => <option key={v.id} value={v.id}>{v.vlan_id} - {v.name}</option>)}
         </select>
-        <input className="border rounded p-2" placeholder="Assigned To" value={q.assigned_to} onChange={(e) => setQ({ ...q, assigned_to: e.target.value })} />
         <select className="border rounded p-2" value={q.has_gateway} onChange={(e) => setQ({ ...q, has_gateway: e.target.value })}>
           <option value="">Any Gateway</option>
           <option value="true">Has Gateway</option>

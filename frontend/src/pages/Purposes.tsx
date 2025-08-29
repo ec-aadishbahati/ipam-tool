@@ -4,6 +4,14 @@ import { api } from "../lib/api";
 import { getErrorMessage } from "../utils/errorHandling";
 import { EditableRow } from "../components/EditableRow";
 
+const CATEGORY_OPTIONS = [
+  { value: "Controllers / Management", label: "Controllers / Management" },
+  { value: "Connectivity (P2P / Links)", label: "Connectivity (P2P / Links)" },
+  { value: "Data Networks", label: "Data Networks" },
+  { value: "Pools & Addressing", label: "Pools & Addressing" },
+  { value: "Out-of-Band", label: "Out-of-Band" },
+];
+
 export default function Purposes() {
   const qc = useQueryClient();
   const { data } = useQuery({ queryKey: ["purposes"], queryFn: async () => (await api.get("/api/purposes")).data });
@@ -22,8 +30,13 @@ export default function Purposes() {
       <h2 className="text-xl font-semibold">Purposes</h2>
       <div className="border rounded p-3 space-y-2">
         <div className="grid grid-cols-2 gap-2">
-          <input className="border p-2 rounded" placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          <input className="border p-2 rounded" placeholder="Category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
+          <input className="border p-2 rounded" placeholder="Purpose Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          <select className="border p-2 rounded" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
+            <option value="">Select Category</option>
+            {CATEGORY_OPTIONS.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
           <input className="border p-2 rounded col-span-2" placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
         </div>
         <button className="bg-black text-white rounded px-3 py-2" onClick={() => create.mutate()} disabled={create.isPending}>
@@ -49,8 +62,8 @@ export default function Purposes() {
                 entity={p}
                 entityType="purposes"
                 fields={[
-                  { key: 'name', label: 'Name', editable: true },
-                  { key: 'category', label: 'Category', editable: true },
+                  { key: 'name', label: 'Purpose Name', editable: true },
+                  { key: 'category', label: 'Category', editable: true, type: 'select', options: CATEGORY_OPTIONS },
                   { key: 'description', label: 'Description', editable: true },
                 ]}
               />
