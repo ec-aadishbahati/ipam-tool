@@ -21,6 +21,7 @@ class SupernetUpdate(BaseModel):
 
 class SupernetOut(SupernetBase):
     id: int
+    utilization_percentage: float | None = None
 
     class Config:
         from_attributes = True
