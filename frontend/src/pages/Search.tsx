@@ -103,6 +103,12 @@ export default function SearchPage() {
             Import {importType === 'devices' ? 'Device' : 'Subnet'} CSV
           </button>
         </div>
+        <button 
+          className="bg-green-600 text-white rounded px-3 py-2" 
+          onClick={() => window.open(`${import.meta.env.VITE_API_BASE || ''}/api/export/all`, '_blank')}
+        >
+          Export All Data
+        </button>
       </div>
 
       {data && (
