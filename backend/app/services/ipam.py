@@ -9,6 +9,16 @@ def cidr_overlap(cidr_a: str, cidr_b: str) -> bool:
     return net_a.overlaps(net_b)
 
 
+def cidr_contains(supernet_cidr: str, subnet_cidr: str) -> bool:
+    """Check if supernet contains subnet (subnet is within supernet)"""
+    try:
+        supernet = ipaddress.ip_network(supernet_cidr, strict=False)
+        subnet = ipaddress.ip_network(subnet_cidr, strict=False)
+        return subnet.subnet_of(supernet)
+    except (ValueError, TypeError):
+        return False
+
+
 def ip_in_cidr(ip: str, cidr: str) -> bool:
     return ipaddress.ip_address(ip) in ipaddress.ip_network(cidr, strict=False)
 

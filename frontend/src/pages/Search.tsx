@@ -13,6 +13,7 @@ export default function SearchPage() {
     has_gateway: "" 
   });
   const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [importType, setImportType] = useState<'subnets' | 'devices'>('subnets');
   const { data: purposes } = useQuery({ queryKey: ["purposes"], queryFn: async () => (await api.get("/api/purposes")).data });
   const { data: vlans } = useQuery({ queryKey: ["vlans"], queryFn: async () => (await api.get("/api/vlans")).data });
   
@@ -28,11 +29,14 @@ export default function SearchPage() {
     const formData = new FormData();
     formData.append('file', csvFile);
     
+    const endpoint = importType === 'devices' ? '/api/devices/import/csv' : '/api/subnets/import/csv';
+    const entityName = importType === 'devices' ? 'devices' : 'subnets';
+    
     try {
-      const response = await api.post('/api/subnets/import/csv', formData, {
+      const response = await api.post(endpoint, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      alert(`Import successful! ${response.data.imported_count} subnets imported.`);
+      alert(`Import successful! ${response.data.imported_count} ${entityName} imported.`);
       if (response.data.errors.length > 0) {
         alert(`Errors: ${response.data.errors.join('\n')}`);
       }
@@ -68,9 +72,22 @@ export default function SearchPage() {
         <button className="bg-black text-white rounded px-3 py-2" onClick={() => refetch()} disabled={isFetching}>
           Search
         </button>
-        <button className="border rounded px-3 py-2" onClick={() => window.open(`${import.meta.env.VITE_API_BASE || ''}/api/subnets/import/template`, '_blank')}>
-          Download Import Template
-        </button>
+        <div className="flex items-center gap-2">
+          <select 
+            className="border rounded p-2" 
+            value={importType} 
+            onChange={(e) => setImportType(e.target.value as 'subnets' | 'devices')}
+          >
+            <option value="subnets">Subnets</option>
+            <option value="devices">Devices</option>
+          </select>
+          <button 
+            className="border rounded px-3 py-2" 
+            onClick={() => window.open(`${import.meta.env.VITE_API_BASE || ''}/api/${importType}/import/template`, '_blank')}
+          >
+            Download {importType === 'devices' ? 'Device' : 'Subnet'} Template
+          </button>
+        </div>
         <div className="flex items-center gap-2">
           <input 
             type="file" 
@@ -83,7 +100,7 @@ export default function SearchPage() {
             onClick={handleCsvImport}
             disabled={!csvFile}
           >
-            Import CSV
+            Import {importType === 'devices' ? 'Device' : 'Subnet'} CSV
           </button>
         </div>
       </div>
