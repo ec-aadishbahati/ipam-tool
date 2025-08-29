@@ -16,25 +16,6 @@ router = APIRouter()
 async def export_all_data(db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
     worksheets = {}
     
-    supernet_count = await db.scalar(select(func.count(Supernet.id)))
-    subnet_count = await db.scalar(select(func.count(Subnet.id)))
-    device_count = await db.scalar(select(func.count(Device.id)))
-    rack_count = await db.scalar(select(func.count(Rack.id)))
-    vlan_count = await db.scalar(select(func.count(Vlan.id)))
-    ip_assignment_count = await db.scalar(select(func.count(IpAssignment.id)))
-    
-    worksheets["Dashboard"] = {
-        "headers": ["Metric", "Count"],
-        "data": [
-            {"Metric": "Total Supernets", "Count": supernet_count or 0},
-            {"Metric": "Total Subnets", "Count": subnet_count or 0},
-            {"Metric": "Total Devices", "Count": device_count or 0},
-            {"Metric": "Total Racks", "Count": rack_count or 0},
-            {"Metric": "Total VLANs", "Count": vlan_count or 0},
-            {"Metric": "Total IP Assignments", "Count": ip_assignment_count or 0},
-        ]
-    }
-    
     supernets_res = await db.execute(select(Supernet))
     supernets = supernets_res.scalars().all()
     worksheets["Supernets"] = {
@@ -167,24 +148,6 @@ async def export_all_data(db: AsyncSession = Depends(get_db), user=Depends(get_c
                 "category": p.category or ""
             }
             for p in purposes
-        ]
-    }
-    
-    audits_res = await db.execute(
-        select(AuditLog).order_by(AuditLog.timestamp.desc()).limit(200)
-    )
-    audits = audits_res.scalars().all()
-    worksheets["Audits"] = {
-        "headers": ["entity_type", "entity_id", "action", "user_id", "timestamp"],
-        "data": [
-            {
-                "entity_type": a.entity_type,
-                "entity_id": str(a.entity_id),
-                "action": a.action,
-                "user_id": str(a.user_id) if a.user_id else "",
-                "timestamp": str(a.timestamp)
-            }
-            for a in audits
         ]
     }
     
