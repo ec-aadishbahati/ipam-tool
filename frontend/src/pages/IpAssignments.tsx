@@ -1,8 +1,7 @@
-import React from "react";
-
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { api } from "../lib/api";
+import { getErrorMessage } from "../utils/errorHandling";
 
 export default function IpAssignments() {
   const qc = useQueryClient();
@@ -55,10 +54,10 @@ export default function IpAssignments() {
         <button className="bg-black text-white rounded px-3 py-2" onClick={() => create.mutate()} disabled={create.isPending}>
           Create
         </button>
-        {create.error && <div className="text-sm text-red-600">{(create.error as any)?.response?.data?.detail || "Error"}</div>}
-        {subnetsError && <div className="text-sm text-red-600">Failed to load subnets: {(subnetsError as any)?.response?.data?.detail || "Network error"}</div>}
-        {devicesError && <div className="text-sm text-red-600">Failed to load devices: {(devicesError as any)?.response?.data?.detail || "Network error"}</div>}
-        {ipError && <div className="text-sm text-red-600">Failed to load IP assignments: {(ipError as any)?.response?.data?.detail || "Network error"}</div>}
+        {create.error && <div className="text-sm text-red-600">{getErrorMessage(create.error)}</div>}
+        {subnetsError && <div className="text-sm text-red-600">Failed to load subnets: {getErrorMessage(subnetsError, "Network error")}</div>}
+        {devicesError && <div className="text-sm text-red-600">Failed to load devices: {getErrorMessage(devicesError, "Network error")}</div>}
+        {ipError && <div className="text-sm text-red-600">Failed to load IP assignments: {getErrorMessage(ipError, "Network error")}</div>}
       </div>
 
       <div className="overflow-x-auto">

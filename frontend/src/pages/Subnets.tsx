@@ -1,8 +1,7 @@
-import React from "react";
-
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { api } from "../lib/api";
+import { getErrorMessage, getErrorDetails } from "../utils/errorHandling";
 
 export default function Subnets() {
   const qc = useQueryClient();
@@ -127,16 +126,9 @@ export default function Subnets() {
         </button>
         {create.error && (
           <div className="text-sm text-red-600">
-            {(() => {
-              const error = create.error as any;
-              const detail = error?.response?.data?.detail;
-              if (Array.isArray(detail)) {
-                return detail.map((err: any, idx: number) => (
-                  <div key={idx}>{err.msg || err.message || JSON.stringify(err)}</div>
-                ));
-              }
-              return detail || error?.message || "Error creating subnet";
-            })()}
+            {getErrorDetails(create.error).map((err, idx) => (
+              <div key={idx}>{err}</div>
+            ))}
           </div>
         )}
       </div>

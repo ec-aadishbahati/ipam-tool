@@ -160,54 +160,35 @@ async def delete_subnet(subnet_id: int, db: AsyncSession = Depends(get_db), user
 
 @router.get("/export/csv")
 async def export_subnets_csv(db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
-    from fastapi.responses import StreamingResponse
-    import csv
-    import io
+    from app.utils.csv_export import create_csv_response
     
     res = await db.execute(select(Subnet).options(selectinload(Subnet.purpose), selectinload(Subnet.vlan)))
     subnets = res.scalars().all()
     
-    output = io.StringIO()
-    writer = csv.writer(output)
-    writer.writerow(["name", "cidr", "purpose", "assigned_to", "gateway_ip", "vlan", "site", "environment"])
-    
+    data = []
     for subnet in subnets:
-        writer.writerow([
-            subnet.name or "",
-            subnet.cidr,
-            subnet.purpose.name if subnet.purpose else "",
-            subnet.assigned_to or "",
-            subnet.gateway_ip or "",
-            f"{subnet.vlan.vlan_id} - {subnet.vlan.name}" if subnet.vlan else "",
-            subnet.site or "",
-            subnet.environment or ""
-        ])
+        data.append({
+            "name": subnet.name or "",
+            "cidr": subnet.cidr,
+            "purpose": subnet.purpose.name if subnet.purpose else "",
+            "assigned_to": subnet.assigned_to or "",
+            "gateway_ip": subnet.gateway_ip or "",
+            "vlan": f"{subnet.vlan.vlan_id} - {subnet.vlan.name}" if subnet.vlan else "",
+            "site": subnet.site or "",
+            "environment": subnet.environment or ""
+        })
     
-    output.seek(0)
-    return StreamingResponse(
-        io.BytesIO(output.getvalue().encode()),
-        media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=subnets.csv"}
-    )
+    headers = ["name", "cidr", "purpose", "assigned_to", "gateway_ip", "vlan", "site", "environment"]
+    return create_csv_response(data, headers, "subnets.csv")
 
 
 @router.get("/import/template")
 async def get_import_template():
-    from fastapi.responses import StreamingResponse
-    import csv
-    import io
+    from app.utils.csv_export import create_csv_template
     
-    output = io.StringIO()
-    writer = csv.writer(output)
-    writer.writerow(["name", "cidr", "purpose", "assigned_to", "gateway_ip", "vlan", "site", "environment"])
-    writer.writerow(["Example Subnet", "10.1.0.0/24", "Production", "Network Team", "10.1.0.1", "100 - Production", "HQ", "prod"])
-    
-    output.seek(0)
-    return StreamingResponse(
-        io.BytesIO(output.getvalue().encode()),
-        media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=subnet_import_template.csv"}
-    )
+    headers = ["name", "cidr", "purpose", "assigned_to", "gateway_ip", "vlan", "site", "environment"]
+    sample_data = ["Example Subnet", "10.1.0.0/24", "Production", "Network Team", "10.1.0.1", "100 - Production", "HQ", "prod"]
+    return create_csv_template(headers, sample_data, "subnet_import_template.csv")
 
 
 @router.post("/import/csv")
