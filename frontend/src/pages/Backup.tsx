@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
+import axios from 'axios';
+import { getAccessToken } from '../lib/auth';
 
 interface BackupItem {
   backup_id: string;
@@ -91,15 +93,6 @@ export default function Backup() {
 
   const handleDownloadBackup = async (backupId: string, filename: string) => {
     try {
-      const token = localStorage.getItem('accessToken');
-      if (!token) {
-        alert('Authentication token not found. Please log in again.');
-        return;
-      }
-
-      const downloadUrl = `/api/backup/download/${backupId}?token=${encodeURIComponent(token)}`;
-      window.open(downloadUrl, '_blank');
-      
     } catch (error) {
       console.error('Download failed:', error);
       alert(`Download failed: ${error instanceof Error ? error.message : 'Unknown error'}`);

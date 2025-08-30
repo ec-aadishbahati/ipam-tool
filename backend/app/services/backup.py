@@ -208,10 +208,19 @@ async def list_backups() -> List[BackupListItem]:
                 data = json.load(f)
                 metadata = data.get('metadata', {})
                 
+                created_at_str = metadata.get('created_at', '')
+                try:
+                    created_at = datetime.fromisoformat(created_at_str)
+                except ValueError:
+                    try:
+                        created_at = datetime.strptime(created_at_str, '%Y-%m-%d %H:%M:%S.%f')
+                    except ValueError:
+                        created_at = datetime.utcnow()
+                
                 backups.append(BackupListItem(
                     backup_id=metadata.get('backup_id', ''),
                     filename=filepath.name,
-                    created_at=datetime.fromisoformat(metadata.get('created_at', '')),
+                    created_at=created_at,
                     size_bytes=filepath.stat().st_size,
                     total_records=metadata.get('total_records', 0),
                     created_by_user_id=metadata.get('created_by_user_id', 0)
