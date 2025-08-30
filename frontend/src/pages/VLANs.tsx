@@ -74,7 +74,7 @@ export default function VLANs() {
                     options: (purposes ?? []).map((p: any) => ({value: p.id, label: p.name})),
                     render: (value: any) => {
                       const purpose = purposes?.find((p: any) => p.id === value);
-                      return purpose ? purpose.name : value;
+                      return purpose ? `${purpose.name}${purpose.category ? ` (${purpose.category.name})` : ''}` : value;
                     }
                   },
                 ]}
