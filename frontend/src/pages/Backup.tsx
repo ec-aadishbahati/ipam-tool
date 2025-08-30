@@ -91,27 +91,11 @@ export default function Backup() {
 
   const handleDownloadBackup = async (backupId: string, filename: string) => {
     try {
-      const token = localStorage.getItem('accessToken');
-      if (!token) {
-        console.error('No access token available');
-        return;
-      }
-
-      const downloadUrl = `http://localhost:8001/api/backup/download/${backupId}`;
-      
-      const response = await fetch(downloadUrl, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json'
-        }
+      const response = await api.get(`/api/backup/download/${backupId}`, {
+        responseType: 'blob'
       });
 
-      if (!response.ok) {
-        throw new Error(`Download failed: ${response.status} ${response.statusText}`);
-      }
-
-      const blob = await response.blob();
+      const blob = response.data;
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
