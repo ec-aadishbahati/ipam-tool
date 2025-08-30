@@ -254,7 +254,10 @@ async def restore_backup(db: AsyncSession, backup_data: Dict[str, Any]) -> Resto
         await db.execute(delete(Category))
         await db.execute(delete(User))
         
-        await db.execute(text("DELETE FROM sqlite_sequence WHERE name IN ('users', 'categories', 'purposes', 'racks', 'supernets', 'vlans', 'subnets', 'devices', 'ip_assignments')"))
+        try:
+            await db.execute(text("DELETE FROM sqlite_sequence WHERE name IN ('users', 'categories', 'purposes', 'racks', 'supernets', 'vlans', 'subnets', 'devices', 'ip_assignments')"))
+        except Exception as e:
+            pass
         await db.commit()
         
         users_count = 0
