@@ -8,6 +8,7 @@ export default function SearchPage() {
     environment: "", 
     text: "", 
     purpose_id: "", 
+    category_id: "", 
     vlan_id: "", 
     assigned_to: "", 
     has_gateway: "" 
@@ -15,6 +16,7 @@ export default function SearchPage() {
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [importType, setImportType] = useState<'subnets' | 'devices'>('subnets');
   const { data: purposes } = useQuery({ queryKey: ["purposes"], queryFn: async () => (await api.get("/api/purposes")).data });
+  const { data: categories } = useQuery({ queryKey: ["categories"], queryFn: async () => (await api.get("/api/categories")).data });
   const { data: vlans } = useQuery({ queryKey: ["vlans"], queryFn: async () => (await api.get("/api/vlans")).data });
   
   const { data, refetch, isFetching } = useQuery({
@@ -56,6 +58,10 @@ export default function SearchPage() {
         <select className="border rounded p-2" value={q.purpose_id} onChange={(e) => setQ({ ...q, purpose_id: e.target.value })}>
           <option value="">Any Purpose</option>
           {(purposes ?? []).map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+        <select className="border rounded p-2" value={q.category_id} onChange={(e) => setQ({ ...q, category_id: e.target.value })}>
+          <option value="">Any Category</option>
+          {(categories ?? []).map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
         <select className="border rounded p-2" value={q.vlan_id} onChange={(e) => setQ({ ...q, vlan_id: e.target.value })}>
           <option value="">Any VLAN</option>
