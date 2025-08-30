@@ -35,7 +35,7 @@ async def create_system_backup(
 
 
 @router.get("/list", response_model=List[BackupListItem])
-async def list_system_backups(user = Depends(get_current_user)):
+async def list_system_backups():
     """List all available backup files"""
     try:
         return await list_backups()
