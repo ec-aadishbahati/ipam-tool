@@ -1,4 +1,6 @@
 from pydantic import BaseModel
+from typing import List
+from .subnet import SubnetOut
 
 
 class SupernetBase(BaseModel):
@@ -22,6 +24,7 @@ class SupernetUpdate(BaseModel):
 class SupernetOut(SupernetBase):
     id: int
     utilization_percentage: float | None = None
+    subnets: List[SubnetOut] = []
 
     class Config:
         from_attributes = True
