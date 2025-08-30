@@ -14,6 +14,7 @@ const links = [
   { to: "/purposes", label: "Purposes" },
   { to: "/audits", label: "Audits" },
   { to: "/search", label: "Search" },
+  { to: "/backup", label: "Backup" },
 ];
 
 export default function Layout() {

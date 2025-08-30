@@ -6,7 +6,7 @@ from app.core.config import settings
 from app.core.startup import validate_environment
 from app.db.session import engine
 from app.api.routes import auth, purposes, categories, supernets, subnets, vlans
-from app.api.routes import devices, racks, ip_assignments, audits, search, export
+from app.api.routes import devices, racks, ip_assignments, audits, search, export, backup
 
 validate_environment()
 
@@ -115,6 +115,7 @@ app.include_router(ip_assignments.router, prefix="/api/ip-assignments", tags=["i
 app.include_router(audits.router, prefix="/api/audits", tags=["audits"])
 app.include_router(search.router, prefix="/api/search", tags=["search"])
 app.include_router(export.router, prefix="/api/export", tags=["export"])
+app.include_router(backup.router, prefix="/api/backup", tags=["backup"])
 
 from app.api.routes import health
 app.include_router(health.router, prefix="/api", tags=["health"])
