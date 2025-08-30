@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request
 from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
@@ -6,7 +6,7 @@ import json
 import os
 from pathlib import Path
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, get_current_user_from_token_param
 from app.db.session import get_db
 from app.services.backup import (
     create_backup, list_backups, restore_backup, 
@@ -46,7 +46,9 @@ async def list_system_backups(user = Depends(get_current_user)):
 @router.get("/download/{backup_id}")
 async def download_backup(
     backup_id: str,
-    user = Depends(get_current_user)
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    user = Depends(get_current_user_from_token_param)
 ):
     """Download a backup file"""
     filepath = get_backup_file_path(backup_id)
