@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
+import axios from 'axios';
+import { getAccessToken } from '../lib/auth';
 
 interface BackupItem {
   backup_id: string;
@@ -91,8 +93,12 @@ export default function Backup() {
 
   const handleDownloadBackup = async (backupId: string, filename: string) => {
     try {
-      const response = await api.get(`/api/backup/download/${backupId}`, {
-        responseType: 'blob'
+      const token = getAccessToken();
+      const response = await axios.get(`/api/backup/download/${backupId}`, {
+        responseType: 'blob',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       const blob = response.data;
