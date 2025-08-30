@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 cors_kwargs = {
     "allow_credentials": True,
-    "allow_methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Explicit methods
+    "allow_methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],  # Explicit methods
     "allow_headers": ["Authorization", "Content-Type", "Accept"],   # Explicit headers
     "allow_origins": [],  # No default - must be explicitly set
 }
