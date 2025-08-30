@@ -93,10 +93,15 @@ export default function Backup() {
 
   const handleDownloadBackup = async (backupId: string, filename: string) => {
     try {
-      const token = getAccessToken();
-      const downloadUrl = `/api/backup/download/${backupId}?token=${token}`;
+      const downloadUrl = `/api/backup/download/${backupId}`;
       
-      window.open(downloadUrl, '_blank');
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = filename;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (error) {
       console.error('Download failed:', error);
     }
