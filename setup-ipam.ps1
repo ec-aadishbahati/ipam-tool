@@ -147,6 +147,10 @@ if (-not $SkipDatabase) {
         python -m app.seed_admin
         if ($LASTEXITCODE -ne 0) { throw "Admin user creation failed" }
         Write-Host "Admin user created" -ForegroundColor Green
+        
+        python -m app.seed_categories
+        if ($LASTEXITCODE -ne 0) { throw "Default categories creation failed" }
+        Write-Host "Default categories created" -ForegroundColor Green
     }
     catch {
         Write-Host "Failed to initialize database: $_" -ForegroundColor Red
