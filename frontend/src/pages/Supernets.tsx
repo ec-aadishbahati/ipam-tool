@@ -11,6 +11,7 @@ export default function Supernets() {
   const nav = useNavigate();
   const { data, isLoading, error } = useQuery({ queryKey: ["supernets"], queryFn: async () => (await api.get("/api/supernets")).data });
   const [form, setForm] = useState({ name: "", cidr: "", site: "", environment: "" });
+  const [expandedSupernets, setExpandedSupernets] = useState<Set<number>>(new Set());
   const create = useMutation({
     mutationFn: async () => (await api.post("/api/supernets", form)).data,
     onSuccess: () => {
@@ -25,6 +26,16 @@ export default function Supernets() {
       nav("/login");
     }
   }, [error, nav]);
+
+  const toggleExpanded = (supernetId: number) => {
+    const newExpanded = new Set(expandedSupernets);
+    if (newExpanded.has(supernetId)) {
+      newExpanded.delete(supernetId);
+    } else {
+      newExpanded.add(supernetId);
+    }
+    setExpandedSupernets(newExpanded);
+  };
 
   return (
     <div className="space-y-4">
@@ -63,27 +74,66 @@ export default function Supernets() {
             </thead>
             <tbody>
               {(data ?? []).map((s: any) => (
-                <EditableRow
-                  key={s.id}
-                  entity={s}
-                  entityType="supernets"
-                  fields={[
-                    { key: 'name', label: 'Name', editable: true },
-                    { key: 'cidr', label: 'CIDR', editable: false, render: (value: any) => <span className="font-mono">{value}</span> },
-                    { 
-                      key: 'utilization_percentage', 
-                      label: 'Utilization', 
-                      editable: false,
-                      render: (value: any) => (
-                        <span className={`px-2 py-1 rounded text-sm ${value > 80 ? 'bg-red-100 text-red-800' : value > 60 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
-                          {value?.toFixed(1)}%
-                        </span>
-                      )
-                    },
-                    { key: 'site', label: 'Site', editable: true },
-                    { key: 'environment', label: 'Environment', editable: true },
-                  ]}
-                />
+                <>
+                  <EditableRow
+                    key={s.id}
+                    entity={s}
+                    entityType="supernets"
+                    fields={[
+                      { 
+                        key: 'name', 
+                        label: 'Name', 
+                        editable: true,
+                        render: (value: any, entity: any) => (
+                          <div className="flex items-center gap-2">
+                            {entity.subnets && entity.subnets.length > 0 && (
+                              <button
+                                onClick={() => toggleExpanded(entity.id)}
+                                className="text-gray-500 hover:text-gray-700"
+                              >
+                                {expandedSupernets.has(entity.id) ? '▼' : '▶'}
+                              </button>
+                            )}
+                            <span>{value}</span>
+                          </div>
+                        )
+                      },
+                      { key: 'cidr', label: 'CIDR', editable: false, render: (value: any) => <span className="font-mono">{value}</span> },
+                      { 
+                        key: 'utilization_percentage', 
+                        label: 'Utilization', 
+                        editable: false,
+                        render: (value: any) => (
+                          <span className={`px-2 py-1 rounded text-sm ${value > 80 ? 'bg-red-100 text-red-800' : value > 60 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                            {value?.toFixed(1)}%
+                          </span>
+                        )
+                      },
+                      { key: 'site', label: 'Site', editable: true },
+                      { key: 'environment', label: 'Environment', editable: true },
+                    ]}
+                  />
+                  {expandedSupernets.has(s.id) && s.subnets && s.subnets.length > 0 && (
+                    <tr>
+                      <td colSpan={6} className="p-0 border">
+                        <div className="bg-gray-50 p-3">
+                          <h4 className="text-sm font-medium mb-2">Allocated Subnets:</h4>
+                          <div className="space-y-1">
+                            {s.subnets.map((subnet: any) => (
+                              <div key={subnet.id} className="flex items-center gap-4 text-sm bg-white p-2 rounded border">
+                                <span className="font-mono text-blue-600">{subnet.cidr}</span>
+                                <span className="text-gray-700">{subnet.name || 'Unnamed'}</span>
+                                <span className={`px-2 py-1 rounded text-xs ${subnet.utilization_percentage > 80 ? 'bg-red-100 text-red-800' : subnet.utilization_percentage > 60 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                                  {subnet.utilization_percentage?.toFixed(1)}% used
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </>
               ))}
             </tbody>
           </table>
