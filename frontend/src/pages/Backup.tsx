@@ -94,14 +94,19 @@ export default function Backup() {
   const handleDownloadBackup = async (backupId: string, filename: string) => {
     try {
       const token = getAccessToken();
-      const response = await axios.get(`/api/backup/download/${backupId}`, {
-        responseType: 'blob',
+      const response = await fetch(`/api/backup/download/${backupId}`, {
+        method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
         }
       });
 
-      const blob = response.data;
+      if (!response.ok) {
+        throw new Error(`Download failed: ${response.status} ${response.statusText}`);
+      }
+
+      const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
