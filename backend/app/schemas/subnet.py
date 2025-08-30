@@ -135,6 +135,7 @@ class SubnetOut(SubnetBase):
     subnet_mask: int | None = None
     host_count: int | None = None
     utilization_percentage: float | None = None
+    available_ips: int | None = None
     first_ip: str | None = None
     last_ip: str | None = None
 

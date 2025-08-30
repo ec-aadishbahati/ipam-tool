@@ -6,7 +6,7 @@ from app.api.deps import get_current_user
 from app.db.session import get_db
 from app.db.models import Supernet, Subnet
 from app.schemas.supernet import SupernetCreate, SupernetOut, SupernetUpdate
-from app.services.ipam import cidr_overlap, calculate_supernet_utilization, calculate_subnet_utilization
+from app.services.ipam import cidr_overlap, calculate_supernet_utilization, calculate_subnet_utilization, calculate_supernet_available_ips
 from app.db.models import IpAssignment
 import ipaddress
 from app.services.audit import record_audit
@@ -21,6 +21,7 @@ async def list_supernets(db: AsyncSession = Depends(get_db), user=Depends(get_cu
     
     for supernet in supernets:
         supernet.utilization_percentage = await calculate_supernet_utilization(supernet.subnets, db)
+        supernet.available_ips = calculate_supernet_available_ips(supernet.cidr, supernet.subnets)
     
     return supernets
 

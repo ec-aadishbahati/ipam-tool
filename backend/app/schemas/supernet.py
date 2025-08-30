@@ -24,6 +24,7 @@ class SupernetUpdate(BaseModel):
 class SupernetOut(SupernetBase):
     id: int
     utilization_percentage: float | None = None
+    available_ips: int | None = None
     subnets: List[SubnetOut] = []
 
     class Config:

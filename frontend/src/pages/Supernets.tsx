@@ -64,12 +64,13 @@ export default function Supernets() {
           <table className="min-w-full text-sm border">
             <thead className="bg-gray-50">
               <tr>
-                <th className="text-left p-2 border">Name</th>
-                <th className="text-left p-2 border">CIDR</th>
-                <th className="text-left p-2 border">Utilization</th>
-                <th className="text-left p-2 border">Site</th>
-                <th className="text-left p-2 border">Env</th>
-                <th className="text-left p-2 border">Actions</th>
+                 <th className="text-left p-2 border">Name</th>
+                 <th className="text-left p-2 border">CIDR</th>
+                 <th className="text-left p-2 border">Utilization</th>
+                 <th className="text-left p-2 border">Available IPs</th>
+                 <th className="text-left p-2 border">Site</th>
+                 <th className="text-left p-2 border">Env</th>
+                 <th className="text-left p-2 border">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -109,13 +110,23 @@ export default function Supernets() {
                           </span>
                         )
                       },
+                      { 
+                        key: 'available_ips', 
+                        label: 'Available IPs', 
+                        editable: false,
+                        render: (value: any) => (
+                          <span className={`px-2 py-1 rounded text-sm ${value === 0 ? 'bg-red-100 text-red-800' : value < 100 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                            {value?.toLocaleString()}
+                          </span>
+                        )
+                      },
                       { key: 'site', label: 'Site', editable: true },
                       { key: 'environment', label: 'Environment', editable: true },
                     ]}
                   />
                   {expandedSupernets.has(s.id) && s.subnets && s.subnets.length > 0 && (
                     <tr>
-                      <td colSpan={6} className="p-0 border">
+                      <td colSpan={7} className="p-0 border">
                         <div className="bg-gray-50 p-3">
                           <h4 className="text-sm font-medium mb-2">Allocated Subnets:</h4>
                           <div className="space-y-1">
