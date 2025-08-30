@@ -141,6 +141,7 @@ export default function Subnets() {
               <th className="text-left p-2 border">Name</th>
               <th className="text-left p-2 border">CIDR</th>
               <th className="text-left p-2 border">Utilization</th>
+              <th className="text-left p-2 border">Available IPs</th>
               <th className="text-left p-2 border">Valid IP Range</th>
               <th className="text-left p-2 border">Gateway</th>
               <th className="text-left p-2 border">Purpose</th>
@@ -166,6 +167,16 @@ export default function Subnets() {
                     render: (value: any) => (
                       <span className={`px-2 py-1 rounded text-sm ${value > 80 ? 'bg-red-100 text-red-800' : value > 60 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
                         {value?.toFixed(1)}%
+                      </span>
+                    )
+                  },
+                  { 
+                    key: 'available_ips', 
+                    label: 'Available IPs', 
+                    editable: false,
+                    render: (value: any) => (
+                      <span className={`px-2 py-1 rounded text-sm ${value === 0 ? 'bg-red-100 text-red-800' : value < 10 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                        {value}
                       </span>
                     )
                   },

@@ -96,6 +96,27 @@ async def calculate_supernet_utilization(subnets: Sequence, db: AsyncSession) ->
     return (total_allocated_ips / total_supernet_ips) * 100
 
 
+def calculate_subnet_available_ips(cidr: str, assigned_ips: list[str]) -> int:
+    """Calculate available IP addresses for a subnet"""
+    network = ipaddress.ip_network(cidr, strict=False)
+    total_usable = get_usable_address_count(network)
+    return max(0, total_usable - len(assigned_ips))
+
+
+def calculate_supernet_available_ips(supernet_cidr: str, subnets: Sequence) -> int:
+    """Calculate available IP addresses for a supernet"""
+    supernet_network = ipaddress.ip_network(supernet_cidr, strict=False)
+    total_supernet_ips = get_usable_address_count(supernet_network)
+    
+    total_allocated_ips = 0
+    for subnet in subnets:
+        subnet_network = ipaddress.ip_network(subnet.cidr, strict=False)
+        subnet_ips = get_usable_address_count(subnet_network)
+        total_allocated_ips += subnet_ips
+    
+    return max(0, total_supernet_ips - total_allocated_ips)
+
+
 def get_valid_ip_range(cidr: str) -> tuple[str, str]:
     """Get first and last valid IP addresses in subnet (excluding network/broadcast)"""
     network = ipaddress.ip_network(cidr, strict=False)
