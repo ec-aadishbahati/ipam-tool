@@ -142,6 +142,7 @@ export default function Subnets() {
               <th className="text-left p-2 border">CIDR</th>
               <th className="text-left p-2 border">Utilization</th>
               <th className="text-left p-2 border">Valid IP Range</th>
+              <th className="text-left p-2 border">Gateway</th>
               <th className="text-left p-2 border">Purpose</th>
               <th className="text-left p-2 border">VLAN</th>
               <th className="text-left p-2 border">Site</th>
@@ -169,6 +170,16 @@ export default function Subnets() {
                     )
                   },
                   { key: 'first_ip', label: 'Valid IP Range', editable: false, render: (value: any, entity: any) => `${value} - ${entity.last_ip}` },
+                  { 
+                    key: 'gateway_ip', 
+                    label: 'Gateway', 
+                    editable: false,
+                    render: (value: any, entity: any) => {
+                      if (entity.gateway_mode === 'none') return '-';
+                      if (entity.gateway_mode === 'auto_first' && entity.first_ip) return entity.first_ip;
+                      return value || '-';
+                    }
+                  },
                   { 
                     key: 'purpose_id', 
                     label: 'Purpose', 
