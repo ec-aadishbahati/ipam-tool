@@ -46,6 +46,7 @@ async def list_system_backups():
 @router.get("/download/{backup_id}")
 async def download_backup(
     backup_id: str,
+
 ):
     """Download a backup file"""
     filepath = get_backup_file_path(backup_id)
