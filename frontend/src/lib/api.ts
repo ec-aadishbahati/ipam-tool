@@ -18,10 +18,10 @@ if (base && !base.startsWith("https://") && !base.startsWith("http://localhost")
   console.warn("VITE_API_BASE should be HTTPS in production");
 }
 
-console.log(`API base URL resolved to ${base ?? "(none)"}`);
+console.log(`API base URL resolved to ${base ?? "(using Vite proxy)"}`);
 
 export const api = axios.create({
-  baseURL: base,
+  baseURL: base || "",
 });
 
 api.interceptors.request.use((config) => {

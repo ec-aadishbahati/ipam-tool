@@ -93,35 +93,16 @@ export default function Backup() {
     try {
       const token = localStorage.getItem('accessToken');
       if (!token) {
-        console.error('No access token available');
+        alert('Authentication token not found. Please log in again.');
         return;
       }
 
-      const downloadUrl = `http://localhost:8001/api/backup/download/${backupId}`;
+      const downloadUrl = `/api/backup/download/${backupId}?token=${encodeURIComponent(token)}`;
+      window.open(downloadUrl, '_blank');
       
-      const response = await fetch(downloadUrl, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Download failed: ${response.status} ${response.statusText}`);
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Download failed:', error);
+      alert(`Download failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
