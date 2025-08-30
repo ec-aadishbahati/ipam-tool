@@ -16,6 +16,7 @@ import Categories from "./pages/Categories";
 import Purposes from "./pages/Purposes";
 import Audits from "./pages/Audits";
 import SearchPage from "./pages/Search";
+import Backup from "./pages/Backup";
 import { RequireAuth } from "./pages/RequireAuth";
 
 const qc = new QueryClient({
@@ -54,6 +55,7 @@ const router = createBrowserRouter([
       { path: "purposes", element: <Purposes /> },
       { path: "audits", element: <Audits /> },
       { path: "search", element: <SearchPage /> },
+      { path: "backup", element: <Backup /> },
     ],
   },
 ]);
