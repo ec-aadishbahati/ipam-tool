@@ -498,7 +498,8 @@ def _serialize_supernet(supernet: Supernet) -> Dict[str, Any]:
         'id': supernet.id,
         'name': supernet.name,
         'cidr': supernet.cidr,
-        'description': supernet.description,
+        'site': supernet.site,
+        'environment': supernet.environment,
     }
 
 
@@ -602,7 +603,8 @@ def _deserialize_supernet(data: Dict[str, Any]) -> Dict[str, Any]:
     return {
         'name': data['name'],
         'cidr': data['cidr'],
-        'description': data.get('description')
+        'site': data.get('site'),
+        'environment': data.get('environment')
     }
 
 
