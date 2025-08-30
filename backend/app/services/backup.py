@@ -244,175 +244,172 @@ async def restore_backup(db: AsyncSession, backup_data: Dict[str, Any]) -> Resto
         data = backup_data['data']
         records_imported = {}
         
-        async with db.begin():
-            await db.execute(delete(IpAssignment))
-            await db.execute(delete(Device))
-            await db.execute(delete(Subnet))
-            await db.execute(delete(Vlan))
-            await db.execute(delete(Supernet))
-            await db.execute(delete(Rack))
-            await db.execute(delete(Purpose))
-            await db.execute(delete(Category))
-            await db.execute(delete(User))
+        await db.execute(delete(IpAssignment))
+        await db.execute(delete(Device))
+        await db.execute(delete(Subnet))
+        await db.execute(delete(Vlan))
+        await db.execute(delete(Supernet))
+        await db.execute(delete(Rack))
+        await db.execute(delete(Purpose))
+        await db.execute(delete(Category))
+        await db.execute(delete(User))
+        
+        await db.execute(text("DELETE FROM sqlite_sequence WHERE name IN ('users', 'categories', 'purposes', 'racks', 'supernets', 'vlans', 'subnets', 'devices', 'ip_assignments')"))
+        await db.commit()
+        
+        users_count = 0
+        for user_data in data.get('users', []):
+            user = User(**_deserialize_user(user_data))
+            db.add(user)
+            users_count += 1
+        await db.commit()
+        records_imported['users'] = users_count
+        
+        categories_count = 0
+        for category_data in data.get('categories', []):
+            category = Category(**_deserialize_category(category_data))
+            db.add(category)
+            categories_count += 1
+        await db.commit()
+        records_imported['categories'] = categories_count
+        
+        purposes_count = 0
+        for purpose_data in data.get('purposes', []):
+            purpose_dict = _deserialize_purpose(purpose_data)
             
-            await db.execute(text("DELETE FROM sqlite_sequence WHERE name IN ('users', 'categories', 'purposes', 'racks', 'supernets', 'vlans', 'subnets', 'devices', 'ip_assignments')"))
+            if purpose_data.get('category_name'):
+                category_result = await db.execute(
+                    select(Category).where(Category.name == purpose_data['category_name'])
+                )
+                category = category_result.scalar_one_or_none()
+                if category:
+                    purpose_dict['category_id'] = category.id
             
+            purpose = Purpose(**purpose_dict)
+            db.add(purpose)
+            purposes_count += 1
+        await db.commit()
+        records_imported['purposes'] = purposes_count
+        
+        racks_count = 0
+        for rack_data in data.get('racks', []):
+            rack = Rack(**_deserialize_rack(rack_data))
+            db.add(rack)
+            racks_count += 1
+        await db.commit()
+        records_imported['racks'] = racks_count
+        
+        supernets_count = 0
+        for supernet_data in data.get('supernets', []):
+            supernet = Supernet(**_deserialize_supernet(supernet_data))
+            db.add(supernet)
+            supernets_count += 1
+        await db.commit()
+        records_imported['supernets'] = supernets_count
+        
+        vlans_count = 0
+        for vlan_data in data.get('vlans', []):
+            vlan_dict = _deserialize_vlan(vlan_data)
             
-            users_count = 0
-            for user_data in data.get('users', []):
-                user = User(**_deserialize_user(user_data))
-                db.add(user)
-                users_count += 1
-            await db.flush()
-            records_imported['users'] = users_count
+            if vlan_data.get('purpose_name'):
+                purpose_result = await db.execute(
+                    select(Purpose).where(Purpose.name == vlan_data['purpose_name'])
+                )
+                purpose = purpose_result.scalar_one_or_none()
+                if purpose:
+                    vlan_dict['purpose_id'] = purpose.id
             
-            categories_count = 0
-            for category_data in data.get('categories', []):
-                category = Category(**_deserialize_category(category_data))
-                db.add(category)
-                categories_count += 1
-            await db.flush()
-            records_imported['categories'] = categories_count
+            vlan = Vlan(**vlan_dict)
+            db.add(vlan)
+            vlans_count += 1
+        await db.commit()
+        records_imported['vlans'] = vlans_count
+        
+        subnets_count = 0
+        for subnet_data in data.get('subnets', []):
+            subnet_dict = _deserialize_subnet(subnet_data)
             
-            purposes_count = 0
-            for purpose_data in data.get('purposes', []):
-                purpose_dict = _deserialize_purpose(purpose_data)
-                
-                if purpose_data.get('category_name'):
-                    category_result = await db.execute(
-                        select(Category).where(Category.name == purpose_data['category_name'])
-                    )
-                    category = category_result.scalar_one_or_none()
-                    if category:
-                        purpose_dict['category_id'] = category.id
-                
-                purpose = Purpose(**purpose_dict)
-                db.add(purpose)
-                purposes_count += 1
-            await db.flush()
-            records_imported['purposes'] = purposes_count
+            if subnet_data.get('purpose_name'):
+                purpose_result = await db.execute(
+                    select(Purpose).where(Purpose.name == subnet_data['purpose_name'])
+                )
+                purpose = purpose_result.scalar_one_or_none()
+                if purpose:
+                    subnet_dict['purpose_id'] = purpose.id
             
-            racks_count = 0
-            for rack_data in data.get('racks', []):
-                rack = Rack(**_deserialize_rack(rack_data))
-                db.add(rack)
-                racks_count += 1
-            await db.flush()
-            records_imported['racks'] = racks_count
+            if subnet_data.get('vlan_name'):
+                vlan_result = await db.execute(
+                    select(Vlan).where(Vlan.name == subnet_data['vlan_name'])
+                )
+                vlan = vlan_result.scalar_one_or_none()
+                if vlan:
+                    subnet_dict['vlan_id'] = vlan.id
             
-            supernets_count = 0
-            for supernet_data in data.get('supernets', []):
-                supernet = Supernet(**_deserialize_supernet(supernet_data))
-                db.add(supernet)
-                supernets_count += 1
-            await db.flush()
-            records_imported['supernets'] = supernets_count
+            if subnet_data.get('supernet_cidr'):
+                supernet_result = await db.execute(
+                    select(Supernet).where(Supernet.cidr == subnet_data['supernet_cidr'])
+                )
+                supernet = supernet_result.scalar_one_or_none()
+                if supernet:
+                    subnet_dict['supernet_id'] = supernet.id
             
-            vlans_count = 0
-            for vlan_data in data.get('vlans', []):
-                vlan_dict = _deserialize_vlan(vlan_data)
-                
-                if vlan_data.get('purpose_name'):
-                    purpose_result = await db.execute(
-                        select(Purpose).where(Purpose.name == vlan_data['purpose_name'])
-                    )
-                    purpose = purpose_result.scalar_one_or_none()
-                    if purpose:
-                        vlan_dict['purpose_id'] = purpose.id
-                
-                vlan = Vlan(**vlan_dict)
-                db.add(vlan)
-                vlans_count += 1
-            await db.flush()
-            records_imported['vlans'] = vlans_count
+            subnet = Subnet(**subnet_dict)
+            db.add(subnet)
+            subnets_count += 1
+        await db.commit()
+        records_imported['subnets'] = subnets_count
+        
+        devices_count = 0
+        for device_data in data.get('devices', []):
+            device_dict = _deserialize_device(device_data)
             
-            subnets_count = 0
-            for subnet_data in data.get('subnets', []):
-                subnet_dict = _deserialize_subnet(subnet_data)
-                
-                if subnet_data.get('purpose_name'):
-                    purpose_result = await db.execute(
-                        select(Purpose).where(Purpose.name == subnet_data['purpose_name'])
-                    )
-                    purpose = purpose_result.scalar_one_or_none()
-                    if purpose:
-                        subnet_dict['purpose_id'] = purpose.id
-                
-                if subnet_data.get('vlan_name'):
-                    vlan_result = await db.execute(
-                        select(Vlan).where(Vlan.name == subnet_data['vlan_name'])
-                    )
-                    vlan = vlan_result.scalar_one_or_none()
-                    if vlan:
-                        subnet_dict['vlan_id'] = vlan.id
-                
-                if subnet_data.get('supernet_cidr'):
-                    supernet_result = await db.execute(
-                        select(Supernet).where(Supernet.cidr == subnet_data['supernet_cidr'])
-                    )
-                    supernet = supernet_result.scalar_one_or_none()
-                    if supernet:
-                        subnet_dict['supernet_id'] = supernet.id
-                
-                subnet = Subnet(**subnet_dict)
-                db.add(subnet)
-                subnets_count += 1
-            await db.flush()
-            records_imported['subnets'] = subnets_count
+            if device_data.get('vlan_name'):
+                vlan_result = await db.execute(
+                    select(Vlan).where(Vlan.name == device_data['vlan_name'])
+                )
+                vlan = vlan_result.scalar_one_or_none()
+                if vlan:
+                    device_dict['vlan_id'] = vlan.id
             
-            devices_count = 0
-            for device_data in data.get('devices', []):
-                device_dict = _deserialize_device(device_data)
-                
-                if device_data.get('vlan_name'):
-                    vlan_result = await db.execute(
-                        select(Vlan).where(Vlan.name == device_data['vlan_name'])
-                    )
-                    vlan = vlan_result.scalar_one_or_none()
-                    if vlan:
-                        device_dict['vlan_id'] = vlan.id
-                
-                if device_data.get('rack_name'):
-                    rack_result = await db.execute(
-                        select(Rack).where(Rack.name == device_data['rack_name'])
-                    )
-                    rack = rack_result.scalar_one_or_none()
-                    if rack:
-                        device_dict['rack_id'] = rack.id
-                
-                device = Device(**device_dict)
-                db.add(device)
-                devices_count += 1
-            await db.flush()
-            records_imported['devices'] = devices_count
+            if device_data.get('rack_name'):
+                rack_result = await db.execute(
+                    select(Rack).where(Rack.name == device_data['rack_name'])
+                )
+                rack = rack_result.scalar_one_or_none()
+                if rack:
+                    device_dict['rack_id'] = rack.id
             
-            ip_assignments_count = 0
-            for ip_data in data.get('ip_assignments', []):
-                ip_dict = _deserialize_ip_assignment(ip_data)
-                
-                if ip_data.get('subnet_cidr'):
-                    subnet_result = await db.execute(
-                        select(Subnet).where(Subnet.cidr == ip_data['subnet_cidr'])
-                    )
-                    subnet = subnet_result.scalar_one_or_none()
-                    if subnet:
-                        ip_dict['subnet_id'] = subnet.id
-                
-                if ip_data.get('device_name'):
-                    device_result = await db.execute(
-                        select(Device).where(Device.name == ip_data['device_name'])
-                    )
-                    device = device_result.scalar_one_or_none()
-                    if device:
-                        ip_dict['device_id'] = device.id
-                
-                ip_assignment = IpAssignment(**ip_dict)
-                db.add(ip_assignment)
-                ip_assignments_count += 1
-            await db.flush()
-            records_imported['ip_assignments'] = ip_assignments_count
+            device = Device(**device_dict)
+            db.add(device)
+            devices_count += 1
+        await db.commit()
+        records_imported['devices'] = devices_count
+        
+        ip_assignments_count = 0
+        for ip_data in data.get('ip_assignments', []):
+            ip_dict = _deserialize_ip_assignment(ip_data)
             
-            await db.commit()
+            if ip_data.get('subnet_cidr'):
+                subnet_result = await db.execute(
+                    select(Subnet).where(Subnet.cidr == ip_data['subnet_cidr'])
+                )
+                subnet = subnet_result.scalar_one_or_none()
+                if subnet:
+                    ip_dict['subnet_id'] = subnet.id
+            
+            if ip_data.get('device_name'):
+                device_result = await db.execute(
+                    select(Device).where(Device.name == ip_data['device_name'])
+                )
+                device = device_result.scalar_one_or_none()
+                if device:
+                    ip_dict['device_id'] = device.id
+            
+            ip_assignment = IpAssignment(**ip_dict)
+            db.add(ip_assignment)
+            ip_assignments_count += 1
+        await db.commit()
+        records_imported['ip_assignments'] = ip_assignments_count
         
         return RestoreResult(
             success=True,
