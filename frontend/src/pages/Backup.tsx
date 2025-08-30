@@ -94,27 +94,9 @@ export default function Backup() {
   const handleDownloadBackup = async (backupId: string, filename: string) => {
     try {
       const token = getAccessToken();
-      const response = await fetch(`/api/backup/download/${backupId}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Download failed: ${response.status} ${response.statusText}`);
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      const downloadUrl = `/api/backup/download/${backupId}?token=${token}`;
+      
+      window.open(downloadUrl, '_blank');
     } catch (error) {
       console.error('Download failed:', error);
     }
