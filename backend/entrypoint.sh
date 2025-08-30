@@ -5,8 +5,8 @@ echo "Starting IPAM tool deployment with async migration strategy..."
 
 export FORWARDED_ALLOW_IPS="*"
 
-echo "🚀 Starting uvicorn server on port ${PORT:-8000}..."
-uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers &
+echo "🚀 Starting uvicorn server on port ${PORT:-8001}..."
+uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8001} --proxy-headers &
 UVICORN_PID=$!
 
 echo "⏳ Waiting for uvicorn to initialize..."

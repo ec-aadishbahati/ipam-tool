@@ -162,7 +162,7 @@ if (-not $SkipDatabase) {
 Write-Host "Starting backend server..." -ForegroundColor Cyan
 $backendJob = Start-Job -ScriptBlock {
     Set-Location $using:PWD
-    python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+    python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8001
 }
 
 # Wait a moment for backend to start
@@ -175,7 +175,7 @@ Set-Location "../frontend"
 
 # Create frontend .env.local file
 Write-Host "Creating frontend .env.local file..." -ForegroundColor Cyan
-"VITE_API_BASE=http://localhost:8000" | Out-File -FilePath ".env.local" -Encoding ASCII
+"VITE_API_BASE=http://localhost:8001" | Out-File -FilePath ".env.local" -Encoding ASCII
 Write-Host "Frontend .env.local file created" -ForegroundColor Green
 
 # Install frontend dependencies
@@ -194,7 +194,7 @@ if (-not $SkipDependencies) {
 }
 
 # Wait for backend to be ready
-if (-not (Wait-ForServer "http://localhost:8000/healthz" 30)) {
+if (-not (Wait-ForServer "http://localhost:8001/healthz" 30)) {
     Write-Host "Backend server failed to start" -ForegroundColor Red
     Stop-Job $backendJob -Force
     exit 1
@@ -226,8 +226,8 @@ Write-Host "IPAM Tool Setup Complete!" -ForegroundColor Green
 Write-Host "================================" -ForegroundColor Green
 Write-Host ""
 Write-Host "Frontend URL: http://localhost:5173" -ForegroundColor Cyan
-Write-Host "Backend API: http://localhost:8000" -ForegroundColor Cyan
-Write-Host "API Docs: http://localhost:8000/docs" -ForegroundColor Cyan
+Write-Host "Backend API: http://localhost:8001" -ForegroundColor Cyan
+Write-Host "API Docs: http://localhost:8001/docs" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Login Credentials:" -ForegroundColor Yellow
 Write-Host "   Email: $AdminEmail" -ForegroundColor White

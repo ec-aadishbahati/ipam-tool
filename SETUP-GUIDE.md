@@ -53,7 +53,7 @@ setup-ipam.bat
    - Install Python dependencies from `requirements.txt`
    - Initialize SQLite database with tables
    - Create admin user account
-   - Start backend server on `http://localhost:8000`
+   - Start backend server on `http://localhost:8001`
 
 3. **⚛️ Frontend Setup:**
    - Create `.env.local` file with API base URL
@@ -96,7 +96,7 @@ pip install -r requirements.txt
 # Create .env file with the content from setup scripts
 python init_db.py
 python -m app.seed_admin
-python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8001
 ```
 
 ### Frontend Setup
@@ -104,7 +104,7 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 cd frontend
 npm install
 
-# Create .env.local with: VITE_API_BASE=http://localhost:8000
+# Create .env.local with: VITE_API_BASE=http://localhost:8001
 npm run dev
 ```
 
@@ -129,7 +129,7 @@ npm run dev
 - Ensure no other instances are running
 
 **Port already in use**
-- Stop any existing servers on ports 8000 or 5173
+- Stop any existing servers on ports 8001 or 5173
 - Or modify the ports in the configuration files
 
 ### Getting Help
@@ -143,7 +143,7 @@ If you encounter issues:
 ## 🎉 Success!
 
 Once setup is complete, you should see:
-- Backend API running at `http://localhost:8000`
+- Backend API running at `http://localhost:8001`
 - Frontend application at `http://localhost:5173`
 - Browser automatically opens to the login page
 - Both servers running and ready for use
