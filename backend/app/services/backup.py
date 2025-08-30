@@ -499,7 +499,6 @@ def _serialize_supernet(supernet: Supernet) -> Dict[str, Any]:
         'name': supernet.name,
         'cidr': supernet.cidr,
         'description': supernet.description,
-        'utilization_percentage': supernet.utilization_percentage
     }
 
 
@@ -534,7 +533,6 @@ def _serialize_subnet(subnet: Subnet) -> Dict[str, Any]:
         'gateway_mode': subnet.gateway_mode,
         'subnet_mask': subnet.subnet_mask,
         'host_count': subnet.host_count,
-        'utilization_percentage': subnet.utilization_percentage
     }
 
 
@@ -604,8 +602,7 @@ def _deserialize_supernet(data: Dict[str, Any]) -> Dict[str, Any]:
     return {
         'name': data['name'],
         'cidr': data['cidr'],
-        'description': data.get('description'),
-        'utilization_percentage': data.get('utilization_percentage', 0.0)
+        'description': data.get('description')
     }
 
 
@@ -633,8 +630,7 @@ def _deserialize_subnet(data: Dict[str, Any]) -> Dict[str, Any]:
         'allocation_mode': data.get('allocation_mode', 'manual'),
         'gateway_mode': data.get('gateway_mode', 'none'),
         'subnet_mask': data.get('subnet_mask'),
-        'host_count': data.get('host_count'),
-        'utilization_percentage': data.get('utilization_percentage', 0.0)
+        'host_count': data.get('host_count')
     }
 
 
