@@ -7,6 +7,7 @@ class IpAssignmentBase(BaseModel):
     device_id: int | None = None
     ip_address: str
     role: str | None = None
+    interface: str | None = None
 
     @validator('ip_address')
     def validate_ip_address(cls, v):
@@ -21,6 +22,7 @@ class IpAssignmentUpdate(BaseModel):
     device_id: int | None = None
     ip_address: str | None = None
     role: str | None = None
+    interface: str | None = None
 
     @validator('ip_address')
     def validate_ip_address(cls, v):

@@ -562,6 +562,7 @@ def _serialize_ip_assignment(ip: IpAssignment) -> Dict[str, Any]:
         'device_id': ip.device_id,
         'device_name': ip.device.name if ip.device else None,
         'ip_address': ip.ip_address,
+        'interface': ip.interface,
         'role': ip.role
     }
 
@@ -655,5 +656,6 @@ def _deserialize_ip_assignment(data: Dict[str, Any]) -> Dict[str, Any]:
         'subnet_id': data.get('subnet_id'),
         'device_id': data.get('device_id'),
         'ip_address': data['ip_address'],
+        'interface': data.get('interface'),
         'role': data.get('role', 'Device IP')
     }
