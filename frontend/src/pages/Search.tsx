@@ -134,7 +134,7 @@ function Result({ title, rows, cols }: { title: string; rows: any[]; cols: strin
     <div>
       <h3 className="font-semibold mb-2">{title}</h3>
       <div className="overflow-x-auto">
-        <table className="min-w-full text-sm border">
+        <table className="min-w-full text-xs border">
           <thead className="bg-gray-50">
             <tr>
               {cols.map((c) => (

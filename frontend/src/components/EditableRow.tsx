@@ -70,7 +70,7 @@ export function EditableRow({ entity, entityType, fields, onUpdate, onDelete }: 
             {isEditing && field.editable !== false ? (
               field.type === 'select' ? (
                 <select 
-                  className="border p-1 rounded w-full text-sm"
+                  className="border p-1 rounded w-full text-xs"
                   value={editForm[field.key] || ""}
                   onChange={(e) => setEditForm({...editForm, [field.key]: e.target.value})}
                 >
@@ -81,7 +81,7 @@ export function EditableRow({ entity, entityType, fields, onUpdate, onDelete }: 
                 </select>
               ) : (
                 <input
-                  className="border p-1 rounded w-full text-sm"
+                  className="border p-1 rounded w-full text-xs"
                   type={field.type || 'text'}
                   value={editForm[field.key] || ""}
                   onChange={(e) => setEditForm({...editForm, [field.key]: field.type === 'number' ? Number(e.target.value) : e.target.value})}

@@ -55,7 +55,7 @@ export default function Devices() {
       </div>
 
       <div className="overflow-x-auto">
-        <table className="min-w-full text-sm border">
+        <table className="min-w-full text-xs border">
           <thead className="bg-gray-50">
             <tr>
               <th className="text-left p-2 border">Name</th>
