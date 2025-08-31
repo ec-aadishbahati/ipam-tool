@@ -18,12 +18,12 @@ export default function IpAssignments() {
     queryKey: ["devices"], 
     queryFn: async () => (await api.get("/api/devices")).data 
   });
-  const [form, setForm] = useState({ subnet_id: undefined as number | undefined, device_id: undefined as number | undefined, ip_address: "", role: "" });
+  const [form, setForm] = useState({ subnet_id: undefined as number | undefined, device_id: undefined as number | undefined, ip_address: "", role: "", interface: "" });
 
   const create = useMutation({
     mutationFn: async () => (await api.post("/api/ip-assignments", form)).data,
     onSuccess: () => {
-      setForm({ subnet_id: undefined, device_id: undefined, ip_address: "", role: "" });
+      setForm({ subnet_id: undefined, device_id: undefined, ip_address: "", role: "", interface: "" });
       qc.invalidateQueries({ queryKey: ["ip-assignments"] });
     },
   });
@@ -50,6 +50,7 @@ export default function IpAssignments() {
             ))}
           </select>
           <input className="border p-2 rounded" placeholder="IP Address" value={form.ip_address} onChange={(e) => setForm({ ...form, ip_address: e.target.value })} />
+          <input className="border p-2 rounded" placeholder="Interface (optional)" value={form.interface} onChange={(e) => setForm({ ...form, interface: e.target.value })} />
           <input className="border p-2 rounded" placeholder="Role (optional)" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} />
         </div>
         <button className="bg-black text-white rounded px-3 py-2" onClick={() => create.mutate()} disabled={create.isPending}>
@@ -61,6 +62,48 @@ export default function IpAssignments() {
         {ipError && <div className="text-sm text-red-600">Failed to load IP assignments: {getErrorMessage(ipError, "Network error")}</div>}
       </div>
 
+      <div className="flex gap-2 mb-4">
+        <a
+          href="/api/ip-assignments/export/csv"
+          className="bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700"
+          download
+        >
+          Export CSV
+        </a>
+        <a
+          href="/api/ip-assignments/import/template"
+          className="bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700"
+          download
+        >
+          Download Import Template
+        </a>
+        <label className="bg-orange-600 text-white px-3 py-2 rounded text-sm hover:bg-orange-700 cursor-pointer">
+          Import CSV
+          <input
+            type="file"
+            accept=".csv"
+            className="hidden"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                const formData = new FormData();
+                formData.append('file', file);
+                try {
+                  const response = await api.post('/api/ip-assignments/import/csv', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                  });
+                  alert(`Import successful: ${response.data.imported_count} IP assignments imported`);
+                  qc.invalidateQueries({ queryKey: ["ip-assignments"] });
+                } catch (error: any) {
+                  const errorMsg = error.response?.data?.detail || error.message || 'Import failed';
+                  alert(`Import failed: ${errorMsg}`);
+                }
+              }
+            }}
+          />
+        </label>
+      </div>
+
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm border">
           <thead className="bg-gray-50">
@@ -68,6 +111,7 @@ export default function IpAssignments() {
               <th className="text-left p-2 border">Subnet</th>
               <th className="text-left p-2 border">Device</th>
               <th className="text-left p-2 border">IP</th>
+              <th className="text-left p-2 border">Interface</th>
               <th className="text-left p-2 border">Role</th>
               <th className="text-left p-2 border">Actions</th>
             </tr>
@@ -100,6 +144,7 @@ export default function IpAssignments() {
                     }
                   },
                   { key: 'ip_address', label: 'IP', editable: true, render: (value: any) => <span className="font-mono">{value}</span> },
+                  { key: 'interface', label: 'Interface', editable: true },
                   { key: 'role', label: 'Role', editable: true },
                 ]}
               />

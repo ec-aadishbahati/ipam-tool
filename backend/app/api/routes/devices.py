@@ -107,8 +107,8 @@ async def export_devices_csv(db: AsyncSession = Depends(get_db), user=Depends(ge
 async def get_device_import_template():
     from app.utils.csv_export import create_csv_template
     
-    headers = ["name", "hostname", "role", "location", "vendor", "serial_number", "ip_address", "vlan", "rack", "rack_position"]
-    sample_data = ["Server-01", "srv01.example.com", "Web Server", "Rack A1", "Cisco", "ABC123456789", "10.1.0.10", "100 - Production", "Rack-01", "1"]
+    headers = ["name", "hostname", "role", "location", "vendor", "serial_number", "ip_address", "interface", "vlan", "rack", "rack_position"]
+    sample_data = ["Server-01", "srv01.example.com", "Web Server", "Rack A1", "Cisco", "ABC123456789", "10.1.0.10", "eth0", "100 - Production", "Rack-01", "1"]
     return create_csv_template(headers, sample_data, "device_import_template.csv")
 
 
@@ -200,6 +200,7 @@ async def import_devices_csv(file: UploadFile, db: AsyncSession = Depends(get_db
                                 subnet_id=matching_subnet.id,
                                 device_id=device.id,
                                 ip_address=ip_address,
+                                interface=row.get('interface') or None,
                                 role="Device IP"
                             )
                             db.add(ip_assignment)

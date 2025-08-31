@@ -107,12 +107,13 @@ async def export_all_data(db: AsyncSession = Depends(get_db), user=Depends(get_c
     )
     ip_assignments = ip_assignments_res.scalars().all()
     worksheets["IP Assignments"] = {
-        "headers": ["subnet", "device", "ip_address", "role"],
+        "headers": ["subnet", "device", "ip_address", "interface", "role"],
         "data": [
             {
                 "subnet": f"{ip.subnet.name} ({ip.subnet.cidr})" if ip.subnet else "",
                 "device": ip.device.name if ip.device else "",
                 "ip_address": ip.ip_address,
+                "interface": ip.interface or "",
                 "role": ip.role or ""
             }
             for ip in ip_assignments

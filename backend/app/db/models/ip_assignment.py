@@ -11,6 +11,7 @@ class IpAssignment(Base):
     device_id: Mapped[int | None] = mapped_column(ForeignKey("devices.id"), nullable=True)
     ip_address: Mapped[str] = mapped_column(String(64))
     role: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    interface: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     __table_args__ = (UniqueConstraint("subnet_id", "ip_address", name="uq_subnet_ip"),)
 
