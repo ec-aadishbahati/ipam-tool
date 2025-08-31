@@ -61,7 +61,7 @@ export default function Supernets() {
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full text-sm border">
+          <table className="min-w-full text-xs border">
             <thead className="bg-gray-50">
               <tr>
                  <th className="text-left p-2 border">Name</th>
@@ -105,7 +105,7 @@ export default function Supernets() {
                         label: 'Utilization', 
                         editable: false,
                         render: (value: any) => (
-                          <span className={`px-2 py-1 rounded text-sm ${value > 80 ? 'bg-red-100 text-red-800' : value > 60 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                          <span className={`px-2 py-1 rounded text-xs ${value > 80 ? 'bg-red-100 text-red-800' : value > 60 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
                             {value?.toFixed(1)}%
                           </span>
                         )
@@ -115,7 +115,7 @@ export default function Supernets() {
                         label: 'Available IPs', 
                         editable: false,
                         render: (value: any) => (
-                          <span className={`px-2 py-1 rounded text-sm ${value === 0 ? 'bg-red-100 text-red-800' : value < 100 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                          <span className={`px-2 py-1 rounded text-xs ${value === 0 ? 'bg-red-100 text-red-800' : value < 100 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
                             {value?.toLocaleString()}
                           </span>
                         )
@@ -131,7 +131,7 @@ export default function Supernets() {
                           <h4 className="text-sm font-medium mb-2">Allocated Subnets:</h4>
                           <div className="space-y-1">
                             {s.subnets.map((subnet: any) => (
-                              <div key={subnet.id} className="flex items-center gap-4 text-sm bg-white p-2 rounded border">
+                              <div key={subnet.id} className="flex items-center gap-4 text-xs bg-white p-2 rounded border">
                                 <span className="font-mono text-blue-600">{subnet.cidr}</span>
                                 <span className="text-gray-700">{subnet.name || 'Unnamed'}</span>
                                 <span className={`px-2 py-1 rounded text-xs ${subnet.utilization_percentage > 80 ? 'bg-red-100 text-red-800' : subnet.utilization_percentage > 60 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>

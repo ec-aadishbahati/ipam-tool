@@ -15,7 +15,7 @@ export function DataTable({ columns, data, loading }: DataTableProps) {
   
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full text-sm border">
+      <table className="min-w-full text-xs border">
         <thead className="bg-gray-50">
           <tr>
             {columns.map((col) => (

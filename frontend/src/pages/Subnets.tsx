@@ -135,7 +135,7 @@ export default function Subnets() {
       </div>
 
       <div className="overflow-x-auto">
-        <table className="min-w-full text-sm border">
+        <table className="min-w-full text-xs border">
           <thead className="bg-gray-50">
             <tr>
               <th className="text-left p-2 border">Name</th>
@@ -165,7 +165,7 @@ export default function Subnets() {
                     label: 'Utilization', 
                     editable: false,
                     render: (value: any) => (
-                      <span className={`px-2 py-1 rounded text-sm ${value > 80 ? 'bg-red-100 text-red-800' : value > 60 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                      <span className={`px-2 py-1 rounded text-xs ${value > 80 ? 'bg-red-100 text-red-800' : value > 60 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
                         {value?.toFixed(1)}%
                       </span>
                     )
@@ -175,7 +175,7 @@ export default function Subnets() {
                     label: 'Available IPs', 
                     editable: false,
                     render: (value: any) => (
-                      <span className={`px-2 py-1 rounded text-sm ${value === 0 ? 'bg-red-100 text-red-800' : value < 10 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                      <span className={`px-2 py-1 rounded text-xs ${value === 0 ? 'bg-red-100 text-red-800' : value < 10 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
                         {value}
                       </span>
                     )
