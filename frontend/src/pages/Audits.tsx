@@ -11,7 +11,7 @@ export default function Audits() {
     <div className="space-y-4">
       <h2 className="text-xl font-semibold">Audit Logs</h2>
       <div className="overflow-x-auto">
-        <table className="min-w-full text-sm border">
+        <table className="min-w-full text-xs border">
           <thead className="bg-gray-50">
             <tr>
               <th className="text-left p-2 border">Time</th>
