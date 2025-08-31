@@ -1,25 +1,37 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, func
 from sqlalchemy.orm import selectinload
 from app.api.deps import get_current_user
 from app.db.session import get_db
 from app.db.models import IpAssignment, Subnet
 from app.schemas.ip_assignment import IpAssignmentCreate, IpAssignmentOut, IpAssignmentUpdate
+from app.schemas.pagination import PaginatedResponse
 from app.services.ipam import ip_in_cidr, is_usable_ip_in_subnet
 from app.services.audit import record_audit
 
 router = APIRouter()
 
 
-@router.get("", response_model=list[IpAssignmentOut])
-async def list_ip_assignments(db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+@router.get("", response_model=PaginatedResponse[IpAssignmentOut])
+async def list_ip_assignments(
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(75, ge=1, le=100, description="Items per page"),
+    db: AsyncSession = Depends(get_db), 
+    user=Depends(get_current_user)
+):
+    count_result = await db.execute(select(func.count(IpAssignment.id)))
+    total = count_result.scalar()
+    
+    offset = (page - 1) * limit
     res = await db.execute(
         select(IpAssignment).options(
             selectinload(IpAssignment.subnet), selectinload(IpAssignment.device)
-        )
+        ).offset(offset).limit(limit)
     )
-    return res.scalars().all()
+    ip_assignments = res.scalars().all()
+    
+    return PaginatedResponse.create(ip_assignments, total, page, limit)
 
 
 @router.post("", response_model=IpAssignmentOut)

@@ -3,11 +3,18 @@ import { useState } from "react";
 import { api } from "../lib/api";
 import { getErrorMessage } from "../utils/errorHandling";
 import { EditableRow } from "../components/EditableRow";
+import { Pagination } from "../components/Pagination";
 
 export default function Devices() {
   const qc = useQueryClient();
-  const { data } = useQuery({ queryKey: ["devices"], queryFn: async () => (await api.get("/api/devices")).data });
-  const { data: vlans } = useQuery({ queryKey: ["vlans"], queryFn: async () => (await api.get("/api/vlans")).data });
+  const [page, setPage] = useState(1);
+  const { data: paginatedDevices } = useQuery({ 
+    queryKey: ["devices", page], 
+    queryFn: async () => (await api.get(`/api/devices?page=${page}&limit=75`)).data 
+  });
+  const data = paginatedDevices?.items || [];
+  const { data: vlansResponse } = useQuery({ queryKey: ["vlans"], queryFn: async () => (await api.get("/api/vlans?limit=1000")).data });
+  const vlans = vlansResponse?.items || [];
   const { data: racks } = useQuery({ queryKey: ["racks"], queryFn: async () => (await api.get("/api/racks")).data });
   const [form, setForm] = useState({ name: "", role: "", hostname: "", location: "", vendor: "", serial_number: "", vlan_id: undefined as number | undefined, rack_id: undefined as number | undefined, rack_position: undefined as number | undefined });
 
@@ -16,6 +23,7 @@ export default function Devices() {
     onSuccess: () => {
       setForm({ name: "", role: "", hostname: "", location: "", vendor: "", serial_number: "", vlan_id: undefined, rack_id: undefined, rack_position: undefined });
       qc.invalidateQueries({ queryKey: ["devices"] });
+      setPage(1);
     },
   });
 
@@ -112,6 +120,15 @@ export default function Devices() {
           </tbody>
         </table>
       </div>
+      {paginatedDevices && (
+        <Pagination
+          currentPage={page}
+          totalPages={paginatedDevices.total_pages}
+          onPageChange={setPage}
+          totalItems={paginatedDevices.total}
+          itemsPerPage={75}
+        />
+      )}
     </div>
   );
 }

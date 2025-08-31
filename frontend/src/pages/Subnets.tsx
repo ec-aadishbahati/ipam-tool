@@ -3,12 +3,19 @@ import { useState } from "react";
 import { api } from "../lib/api";
 import { getErrorMessage, getErrorDetails } from "../utils/errorHandling";
 import { EditableRow } from "../components/EditableRow";
+import { Pagination } from "../components/Pagination";
 
 export default function Subnets() {
   const qc = useQueryClient();
-  const { data: subnets } = useQuery({ queryKey: ["subnets"], queryFn: async () => (await api.get("/api/subnets")).data });
+  const [page, setPage] = useState(1);
+  const { data: paginatedSubnets } = useQuery({ 
+    queryKey: ["subnets", page], 
+    queryFn: async () => (await api.get(`/api/subnets?page=${page}&limit=75`)).data 
+  });
+  const subnets = paginatedSubnets?.items || [];
   const { data: purposes } = useQuery({ queryKey: ["purposes"], queryFn: async () => (await api.get("/api/purposes")).data });
-  const { data: vlans } = useQuery({ queryKey: ["vlans"], queryFn: async () => (await api.get("/api/vlans")).data });
+  const { data: vlansResponse } = useQuery({ queryKey: ["vlans"], queryFn: async () => (await api.get("/api/vlans?limit=1000")).data });
+  const vlans = vlansResponse?.items || [];
   const { data: supernets } = useQuery({ queryKey: ["supernets"], queryFn: async () => (await api.get("/api/supernets")).data });
 
   const [form, setForm] = useState({
@@ -31,6 +38,7 @@ export default function Subnets() {
     mutationFn: async () => (await api.post("/api/subnets", form)).data,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["subnets"] });
+      setPage(1);
     },
   });
 
@@ -221,6 +229,15 @@ export default function Subnets() {
           </tbody>
         </table>
       </div>
+      {paginatedSubnets && (
+        <Pagination
+          currentPage={page}
+          totalPages={paginatedSubnets.total_pages}
+          onPageChange={setPage}
+          totalItems={paginatedSubnets.total}
+          itemsPerPage={75}
+        />
+      )}
     </div>
   );
 }

@@ -3,21 +3,26 @@ import { useState } from "react";
 import { api } from "../lib/api";
 import { getErrorMessage } from "../utils/errorHandling";
 import { EditableRow } from "../components/EditableRow";
+import { Pagination } from "../components/Pagination";
 
 export default function IpAssignments() {
   const qc = useQueryClient();
-  const { data, isLoading: ipLoading, error: ipError } = useQuery({ 
-    queryKey: ["ip-assignments"], 
-    queryFn: async () => (await api.get("/api/ip-assignments")).data 
+  const [page, setPage] = useState(1);
+  const { data: paginatedIpAssignments, isLoading: ipLoading, error: ipError } = useQuery({ 
+    queryKey: ["ip-assignments", page], 
+    queryFn: async () => (await api.get(`/api/ip-assignments?page=${page}&limit=75`)).data 
   });
-  const { data: subnets, isLoading: subnetsLoading, error: subnetsError } = useQuery({ 
+  const data = paginatedIpAssignments?.items || [];
+  const { data: subnetsResponse, isLoading: subnetsLoading, error: subnetsError } = useQuery({ 
     queryKey: ["subnets"], 
-    queryFn: async () => (await api.get("/api/subnets")).data 
+    queryFn: async () => (await api.get("/api/subnets?limit=1000")).data 
   });
-  const { data: devices, isLoading: devicesLoading, error: devicesError } = useQuery({ 
+  const subnets = subnetsResponse?.items || [];
+  const { data: devicesResponse, isLoading: devicesLoading, error: devicesError } = useQuery({ 
     queryKey: ["devices"], 
-    queryFn: async () => (await api.get("/api/devices")).data 
+    queryFn: async () => (await api.get("/api/devices?limit=1000")).data 
   });
+  const devices = devicesResponse?.items || [];
   const [form, setForm] = useState({ subnet_id: undefined as number | undefined, device_id: undefined as number | undefined, ip_address: "", role: "", interface: "" });
 
   const create = useMutation({
@@ -25,6 +30,7 @@ export default function IpAssignments() {
     onSuccess: () => {
       setForm({ subnet_id: undefined, device_id: undefined, ip_address: "", role: "", interface: "" });
       qc.invalidateQueries({ queryKey: ["ip-assignments"] });
+      setPage(1);
     },
   });
 
@@ -152,6 +158,15 @@ export default function IpAssignments() {
           </tbody>
         </table>
       </div>
+      {paginatedIpAssignments && (
+        <Pagination
+          currentPage={page}
+          totalPages={paginatedIpAssignments.total_pages}
+          onPageChange={setPage}
+          totalItems={paginatedIpAssignments.total}
+          itemsPerPage={75}
+        />
+      )}
     </div>
   );
 }
