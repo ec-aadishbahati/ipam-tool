@@ -127,3 +127,90 @@ def get_valid_ip_range(cidr: str) -> tuple[str, str]:
     else:
         hosts = list(network.hosts())
         return str(hosts[0]), str(hosts[-1])
+
+
+def calculate_spatial_allocation_segments(supernet_cidr: str, subnets: Sequence) -> list[dict]:
+    """Calculate spatial allocation segments for supernet visualization"""
+    supernet_network = ipaddress.ip_network(supernet_cidr, strict=False)
+    total_addresses = supernet_network.num_addresses
+    
+    if total_addresses == 0:
+        return [{'start': 0, 'end': 100, 'type': 'available'}]
+    
+    segments = []
+    allocated_ranges = []
+    
+    for subnet in subnets:
+        subnet_network = ipaddress.ip_network(subnet.cidr, strict=False)
+        start_offset = int(subnet_network.network_address) - int(supernet_network.network_address)
+        end_offset = start_offset + subnet_network.num_addresses
+        
+        start_percent = (start_offset / total_addresses) * 100
+        end_percent = (end_offset / total_addresses) * 100
+        
+        allocated_ranges.append((start_percent, end_percent))
+    
+    allocated_ranges.sort()
+    merged_ranges = []
+    for start, end in allocated_ranges:
+        if merged_ranges and start <= merged_ranges[-1][1]:
+            merged_ranges[-1] = (merged_ranges[-1][0], max(merged_ranges[-1][1], end))
+        else:
+            merged_ranges.append((start, end))
+    
+    current_pos = 0
+    for start, end in merged_ranges:
+        if current_pos < start:
+            segments.append({
+                'start': current_pos,
+                'end': start,
+                'type': 'available'
+            })
+        segments.append({
+            'start': start,
+            'end': end,
+            'type': 'allocated'
+        })
+        current_pos = end
+    
+    if current_pos < 100:
+        segments.append({
+            'start': current_pos,
+            'end': 100,
+            'type': 'available'
+        })
+    
+    return segments
+
+
+def calculate_subnet_spatial_segments(subnet_cidr: str, assigned_ips: list[str]) -> list[dict]:
+    """Calculate spatial allocation segments for subnet IP visualization"""
+    network = ipaddress.ip_network(subnet_cidr, strict=False)
+    
+    if network.prefixlen == network.max_prefixlen:
+        return [{'start': 0, 'end': 100, 'type': 'allocated' if assigned_ips else 'available'}]
+    
+    hosts = list(network.hosts()) if network.prefixlen < network.max_prefixlen else [network.network_address]
+    total_hosts = len(hosts)
+    
+    if total_hosts == 0:
+        return [{'start': 0, 'end': 100, 'type': 'available'}]
+    
+    utilization_percent = (len(assigned_ips) / total_hosts) * 100
+    segments = []
+    
+    if utilization_percent > 0:
+        segments.append({
+            'start': 0,
+            'end': utilization_percent,
+            'type': 'allocated'
+        })
+    
+    if utilization_percent < 100:
+        segments.append({
+            'start': utilization_percent,
+            'end': 100,
+            'type': 'available'
+        })
+    
+    return segments
