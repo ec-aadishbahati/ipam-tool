@@ -1,20 +1,34 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, func
 from sqlalchemy.orm import selectinload
 from app.api.deps import get_current_user
 from app.db.session import get_db
 from app.db.models import Device
 from app.schemas.device import DeviceCreate, DeviceOut, DeviceUpdate
+from app.schemas.pagination import PaginatedResponse
 from app.services.audit import record_audit
 
 router = APIRouter()
 
 
-@router.get("", response_model=list[DeviceOut])
-async def list_devices(db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
-    res = await db.execute(select(Device).options(selectinload(Device.vlan)))
-    return res.scalars().all()
+@router.get("", response_model=PaginatedResponse[DeviceOut])
+async def list_devices(
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(75, ge=1, le=100, description="Items per page"),
+    db: AsyncSession = Depends(get_db), 
+    user=Depends(get_current_user)
+):
+    count_result = await db.execute(select(func.count(Device.id)))
+    total = count_result.scalar()
+    
+    offset = (page - 1) * limit
+    res = await db.execute(
+        select(Device).options(selectinload(Device.vlan)).offset(offset).limit(limit)
+    )
+    devices = res.scalars().all()
+    
+    return PaginatedResponse.create(devices, total, page, limit)
 
 
 @router.post("", response_model=DeviceOut)

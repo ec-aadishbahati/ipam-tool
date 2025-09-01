@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, func
 from sqlalchemy.orm import selectinload
 from app.api.deps import get_current_user
 from app.db.session import get_db
 from app.db.models import Subnet, Purpose, Vlan, Supernet
 from app.schemas.subnet import SubnetCreate, SubnetOut, SubnetUpdate
+from app.schemas.pagination import PaginatedResponse
 from app.services.ipam import cidr_overlap, is_gateway_valid, calculate_subnet_utilization, get_valid_ip_range, calculate_supernet_utilization, cidr_contains, calculate_subnet_available_ips
 from app.services.audit import record_audit
 from app.services.subnet_allocation import allocate_subnet_cidr, calculate_gateway_ip
@@ -13,15 +14,24 @@ from app.services.subnet_allocation import allocate_subnet_cidr, calculate_gatew
 router = APIRouter()
 
 
-@router.get("", response_model=list[SubnetOut])
-async def list_subnets(db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+@router.get("", response_model=PaginatedResponse[SubnetOut])
+async def list_subnets(
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(75, ge=1, le=100, description="Items per page"),
+    db: AsyncSession = Depends(get_db), 
+    user=Depends(get_current_user)
+):
+    count_result = await db.execute(select(func.count(Subnet.id)))
+    total = count_result.scalar()
+    
+    offset = (page - 1) * limit
     res = await db.execute(
         select(Subnet).options(
             selectinload(Subnet.supernet),
             selectinload(Subnet.purpose),
             selectinload(Subnet.vlan),
             selectinload(Subnet.ip_assignments),
-        )
+        ).offset(offset).limit(limit)
     )
     subnets = res.scalars().all()
     
@@ -31,7 +41,7 @@ async def list_subnets(db: AsyncSession = Depends(get_db), user=Depends(get_curr
         subnet.available_ips = calculate_subnet_available_ips(subnet.cidr, assigned_ips)
         subnet.first_ip, subnet.last_ip = get_valid_ip_range(subnet.cidr)
     
-    return subnets
+    return PaginatedResponse.create(subnets, total, page, limit)
 
 
 @router.post("", response_model=SubnetOut)

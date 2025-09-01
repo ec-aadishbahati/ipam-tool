@@ -1,19 +1,31 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, func
 from app.api.deps import get_current_user
 from app.db.session import get_db
 from app.db.models import Vlan, Subnet, Device
 from app.schemas.vlan import VlanCreate, VlanOut, VlanUpdate
+from app.schemas.pagination import PaginatedResponse
 from app.services.audit import record_audit
 
 router = APIRouter()
 
 
-@router.get("", response_model=list[VlanOut])
-async def list_vlans(db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
-    res = await db.execute(select(Vlan))
-    return res.scalars().all()
+@router.get("", response_model=PaginatedResponse[VlanOut])
+async def list_vlans(
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(75, ge=1, le=100, description="Items per page"),
+    db: AsyncSession = Depends(get_db), 
+    user=Depends(get_current_user)
+):
+    count_result = await db.execute(select(func.count(Vlan.id)))
+    total = count_result.scalar()
+    
+    offset = (page - 1) * limit
+    res = await db.execute(select(Vlan).offset(offset).limit(limit))
+    vlans = res.scalars().all()
+    
+    return PaginatedResponse.create(vlans, total, page, limit)
 
 
 @router.post("", response_model=VlanOut)

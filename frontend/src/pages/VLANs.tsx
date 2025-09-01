@@ -3,10 +3,16 @@ import { useState } from "react";
 import { api } from "../lib/api";
 import { getErrorMessage } from "../utils/errorHandling";
 import { EditableRow } from "../components/EditableRow";
+import { Pagination } from "../components/Pagination";
 
 export default function VLANs() {
   const qc = useQueryClient();
-  const { data } = useQuery({ queryKey: ["vlans"], queryFn: async () => (await api.get("/api/vlans")).data });
+  const [page, setPage] = useState(1);
+  const { data: paginatedVlans } = useQuery({ 
+    queryKey: ["vlans", page], 
+    queryFn: async () => (await api.get(`/api/vlans?page=${page}&limit=75`)).data 
+  });
+  const data = paginatedVlans?.items || [];
   const { data: purposes } = useQuery({ queryKey: ["purposes"], queryFn: async () => (await api.get("/api/purposes")).data });
   const [form, setForm] = useState({ site: "", environment: "", vlan_id: "", name: "", purpose_id: undefined as number | undefined });
 
@@ -16,6 +22,7 @@ export default function VLANs() {
     onSuccess: () => {
       setForm({ site: "", environment: "", vlan_id: "", name: "", purpose_id: undefined });
       qc.invalidateQueries({ queryKey: ["vlans"] });
+      setPage(1);
     },
   });
 
@@ -83,6 +90,15 @@ export default function VLANs() {
           </tbody>
         </table>
       </div>
+      {paginatedVlans && (
+        <Pagination
+          currentPage={page}
+          totalPages={paginatedVlans.total_pages}
+          onPageChange={setPage}
+          totalItems={paginatedVlans.total}
+          itemsPerPage={75}
+        />
+      )}
     </div>
   );
 }

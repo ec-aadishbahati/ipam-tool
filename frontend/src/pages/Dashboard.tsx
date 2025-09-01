@@ -4,9 +4,12 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 
 export default function Dashboard() {
   const { data: supernets } = useQuery({ queryKey: ["supernets"], queryFn: async () => (await api.get("/api/supernets")).data });
-  const { data: subnets } = useQuery({ queryKey: ["subnets"], queryFn: async () => (await api.get("/api/subnets")).data });
-  const { data: vlans } = useQuery({ queryKey: ["vlans"], queryFn: async () => (await api.get("/api/vlans")).data });
-  const { data: devices } = useQuery({ queryKey: ["devices"], queryFn: async () => (await api.get("/api/devices")).data });
+  const { data: subnetsResponse } = useQuery({ queryKey: ["subnets"], queryFn: async () => (await api.get("/api/subnets?limit=1000")).data });
+  const subnets = subnetsResponse?.items || [];
+  const { data: vlansResponse } = useQuery({ queryKey: ["vlans"], queryFn: async () => (await api.get("/api/vlans?limit=1000")).data });
+  const vlans = vlansResponse?.items || [];
+  const { data: devicesResponse } = useQuery({ queryKey: ["devices"], queryFn: async () => (await api.get("/api/devices?limit=1000")).data });
+  const devices = devicesResponse?.items || [];
 
   const devicesByRole = (devices ?? []).reduce((acc: any, device: any) => {
     const role = device.role || "Unassigned";
