@@ -17,7 +17,8 @@ export default function SearchPage() {
   const [importType, setImportType] = useState<'subnets' | 'devices'>('subnets');
   const { data: purposes } = useQuery({ queryKey: ["purposes"], queryFn: async () => (await api.get("/api/purposes")).data });
   const { data: categories } = useQuery({ queryKey: ["categories"], queryFn: async () => (await api.get("/api/categories")).data });
-  const { data: vlans } = useQuery({ queryKey: ["vlans"], queryFn: async () => (await api.get("/api/vlans")).data });
+  const { data: vlansResponse } = useQuery({ queryKey: ["vlans"], queryFn: async () => (await api.get("/api/vlans?page=1&limit=1000")).data });
+  const vlans = vlansResponse?.items || [];
   
   const { data, refetch, isFetching } = useQuery({
     queryKey: ["search", q],
