@@ -136,6 +136,7 @@ class SubnetOut(SubnetBase):
     host_count: int | None = None
     utilization_percentage: float | None = None
     available_ips: int | None = None
+    spatial_segments: list[dict] = []
     first_ip: str | None = None
     last_ip: str | None = None
 

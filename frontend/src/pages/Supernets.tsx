@@ -105,9 +105,13 @@ export default function Supernets() {
                         key: 'utilization_percentage', 
                         label: 'Allocation', 
                         editable: false,
-                        render: (value: any) => (
+                        render: (value: any, entity: any) => (
                           <div className="flex flex-col gap-1">
-                            <AllocationBar utilizationPercentage={value} showPercentage={false} />
+                            <AllocationBar 
+                              utilizationPercentage={value} 
+                              showPercentage={false} 
+                              spatialSegments={entity.spatial_segments}
+                            />
                             <span className={`px-2 py-1 rounded text-xs self-start ${value > 80 ? 'bg-red-100 text-red-800' : value > 60 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
                               {value?.toFixed(1)}%
                             </span>
@@ -139,7 +143,10 @@ export default function Supernets() {
                                 <span className="font-mono text-blue-600 min-w-[7rem]">{subnet.cidr}</span>
                                 <span className="text-gray-700 min-w-[6rem]">{subnet.name || 'Unnamed'}</span>
                                 <div className="flex-1 min-w-[8rem]">
-                                  <AllocationBar utilizationPercentage={subnet.utilization_percentage} />
+                                  <AllocationBar 
+                                    utilizationPercentage={subnet.utilization_percentage} 
+                                    spatialSegments={subnet.spatial_segments}
+                                  />
                                 </div>
                               </div>
                             ))}

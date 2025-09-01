@@ -25,6 +25,7 @@ class SupernetOut(SupernetBase):
     id: int
     utilization_percentage: float | None = None
     available_ips: int | None = None
+    spatial_segments: list[dict] = []
     subnets: List[SubnetOut] = []
 
     class Config:

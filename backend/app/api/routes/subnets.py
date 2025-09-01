@@ -7,7 +7,7 @@ from app.db.session import get_db
 from app.db.models import Subnet, Purpose, Vlan, Supernet
 from app.schemas.subnet import SubnetCreate, SubnetOut, SubnetUpdate
 from app.schemas.pagination import PaginatedResponse
-from app.services.ipam import cidr_overlap, is_gateway_valid, calculate_subnet_utilization, get_valid_ip_range, calculate_supernet_utilization, cidr_contains, calculate_subnet_available_ips
+from app.services.ipam import cidr_overlap, is_gateway_valid, calculate_subnet_utilization, get_valid_ip_range, calculate_supernet_utilization, cidr_contains, calculate_subnet_available_ips, calculate_subnet_spatial_segments
 from app.services.audit import record_audit
 from app.services.subnet_allocation import allocate_subnet_cidr, calculate_gateway_ip
 
@@ -40,6 +40,7 @@ async def list_subnets(
         subnet.utilization_percentage = calculate_subnet_utilization(subnet.cidr, assigned_ips)
         subnet.available_ips = calculate_subnet_available_ips(subnet.cidr, assigned_ips)
         subnet.first_ip, subnet.last_ip = get_valid_ip_range(subnet.cidr)
+        subnet.spatial_segments = calculate_subnet_spatial_segments(subnet.cidr, assigned_ips)
     
     return PaginatedResponse.create(subnets, total, page, limit)
 
