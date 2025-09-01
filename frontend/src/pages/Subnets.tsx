@@ -4,6 +4,7 @@ import { api } from "../lib/api";
 import { getErrorMessage, getErrorDetails } from "../utils/errorHandling";
 import { EditableRow } from "../components/EditableRow";
 import { Pagination } from "../components/Pagination";
+import { AllocationBar } from "../components/AllocationBar";
 
 export default function Subnets() {
   const qc = useQueryClient();
@@ -148,7 +149,7 @@ export default function Subnets() {
             <tr>
               <th className="text-left p-2 border">Name</th>
               <th className="text-left p-2 border">CIDR</th>
-              <th className="text-left p-2 border">Utilization</th>
+              <th className="text-left p-2 border">Allocation</th>
               <th className="text-left p-2 border">Available IPs</th>
               <th className="text-left p-2 border">Valid IP Range</th>
               <th className="text-left p-2 border">Gateway</th>
@@ -170,12 +171,15 @@ export default function Subnets() {
                   { key: 'cidr', label: 'CIDR', editable: false, render: (value: any) => <span className="font-mono">{value}</span> },
                   { 
                     key: 'utilization_percentage', 
-                    label: 'Utilization', 
+                    label: 'Allocation', 
                     editable: false,
                     render: (value: any) => (
-                      <span className={`px-2 py-1 rounded text-xs ${value > 80 ? 'bg-red-100 text-red-800' : value > 60 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
-                        {value?.toFixed(1)}%
-                      </span>
+                      <div className="flex flex-col gap-1">
+                        <AllocationBar utilizationPercentage={value} showPercentage={false} />
+                        <span className={`px-2 py-1 rounded text-xs self-start ${value > 80 ? 'bg-red-100 text-red-800' : value > 60 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                          {value?.toFixed(1)}%
+                        </span>
+                      </div>
                     )
                   },
                   { 
