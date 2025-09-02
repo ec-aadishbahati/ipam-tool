@@ -22,7 +22,7 @@ async def list_vlans(
     total = count_result.scalar()
     
     offset = (page - 1) * limit
-    res = await db.execute(select(Vlan).offset(offset).limit(limit))
+    res = await db.execute(select(Vlan).order_by(Vlan.id.desc()).offset(offset).limit(limit))
     vlans = res.scalars().all()
     
     return PaginatedResponse.create(vlans, total, page, limit)

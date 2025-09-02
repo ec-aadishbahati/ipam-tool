@@ -4,10 +4,9 @@ from sqlalchemy import select, delete
 from sqlalchemy.orm import selectinload
 from app.api.deps import get_current_user
 from app.db.session import get_db
-from app.db.models import Supernet, Subnet
+from app.db.models import Supernet, Subnet, IpAssignment
 from app.schemas.supernet import SupernetCreate, SupernetOut, SupernetUpdate
 from app.services.ipam import cidr_overlap, calculate_supernet_utilization, calculate_subnet_utilization, calculate_supernet_available_ips, calculate_spatial_allocation_segments
-from app.db.models import IpAssignment
 import ipaddress
 from app.services.audit import record_audit
 
@@ -16,7 +15,7 @@ router = APIRouter()
 
 @router.get("", response_model=list[SupernetOut])
 async def list_supernets(db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
-    res = await db.execute(select(Supernet).options(selectinload(Supernet.subnets)))
+    res = await db.execute(select(Supernet).options(selectinload(Supernet.subnets)).order_by(Supernet.id.desc()))
     supernets = res.scalars().all()
     
     for supernet in supernets:

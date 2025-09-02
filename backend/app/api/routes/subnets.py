@@ -31,7 +31,7 @@ async def list_subnets(
             selectinload(Subnet.purpose),
             selectinload(Subnet.vlan),
             selectinload(Subnet.ip_assignments),
-        ).offset(offset).limit(limit)
+        ).order_by(Subnet.id.desc()).offset(offset).limit(limit)
     )
     subnets = res.scalars().all()
     

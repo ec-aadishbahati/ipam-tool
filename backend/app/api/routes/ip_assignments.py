@@ -27,7 +27,7 @@ async def list_ip_assignments(
     res = await db.execute(
         select(IpAssignment).options(
             selectinload(IpAssignment.subnet), selectinload(IpAssignment.device)
-        ).offset(offset).limit(limit)
+        ).order_by(IpAssignment.id.desc()).offset(offset).limit(limit)
     )
     ip_assignments = res.scalars().all()
     

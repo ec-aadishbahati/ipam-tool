@@ -34,3 +34,39 @@ export function clearTokens() {
     window.localStorage.removeItem(refreshKey);
   }
 }
+
+let lastActivity = Date.now();
+let activityCheckInterval: NodeJS.Timeout | null = null;
+
+export function trackActivity() {
+  lastActivity = Date.now();
+}
+
+export function getLastActivity() {
+  return lastActivity;
+}
+
+export function startActivityTracking() {
+  if (typeof window !== "undefined") {
+    const updateActivity = () => trackActivity();
+    window.addEventListener('mousedown', updateActivity);
+    window.addEventListener('keydown', updateActivity);
+    window.addEventListener('scroll', updateActivity);
+    window.addEventListener('touchstart', updateActivity);
+    
+    activityCheckInterval = setInterval(() => {
+      const idleTime = Date.now() - lastActivity;
+      if (idleTime > 5 * 60 * 1000) {
+        clearTokens();
+        window.location.href = "/login";
+      }
+    }, 30000);
+  }
+}
+
+export function stopActivityTracking() {
+  if (activityCheckInterval) {
+    clearInterval(activityCheckInterval);
+    activityCheckInterval = null;
+  }
+}
