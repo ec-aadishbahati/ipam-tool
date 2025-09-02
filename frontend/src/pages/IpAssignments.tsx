@@ -15,12 +15,12 @@ export default function IpAssignments() {
   const data = paginatedIpAssignments?.items || [];
   const { data: subnetsResponse, isLoading: subnetsLoading, error: subnetsError } = useQuery({ 
     queryKey: ["subnets"], 
-    queryFn: async () => (await api.get("/api/subnets?page=1&limit=1000")).data 
+    queryFn: async () => (await api.get("/api/subnets?page=1&limit=100")).data 
   });
   const subnets = subnetsResponse?.items || [];
   const { data: devicesResponse, isLoading: devicesLoading, error: devicesError } = useQuery({ 
     queryKey: ["devices"], 
-    queryFn: async () => (await api.get("/api/devices?page=1&limit=1000")).data 
+    queryFn: async () => (await api.get("/api/devices?page=1&limit=100")).data 
   });
   const devices = devicesResponse?.items || [];
   const [form, setForm] = useState({ subnet_id: undefined as number | undefined, device_id: undefined as number | undefined, ip_address: "", role: "", interface: "" });
