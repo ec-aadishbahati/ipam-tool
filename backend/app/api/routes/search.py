@@ -81,14 +81,21 @@ async def search(
     
     vlans = await db.execute(vlan_query)
     
-    device_query = select(Device)
+    device_query = select(Device).options(selectinload(Device.vlan), selectinload(Device.rack))
     if q:
-        device_query = device_query.where(Device.name.ilike(f"%{q}%") | Device.hostname.ilike(f"%{q}%"))
+        device_query = device_query.where(
+            Device.name.ilike(f"%{q}%") | 
+            Device.hostname.ilike(f"%{q}%") | 
+            Device.role.ilike(f"%{q}%") | 
+            Device.location.ilike(f"%{q}%") | 
+            Device.vendor.ilike(f"%{q}%") |
+            Device.serial_number.ilike(f"%{q}%")
+        )
     
     devices = await db.execute(device_query)
     
     results["subnets"] = [{"id": s.id, "cidr": s.cidr, "name": s.name, "site": s.site, "environment": s.environment} for s in subnets.scalars().all()]
     results["supernets"] = [{"id": s.id, "cidr": s.cidr, "name": s.name, "site": s.site, "environment": s.environment} for s in supernets.scalars().all()]
     results["vlans"] = [{"id": v.id, "vlan_id": v.vlan_id, "name": v.name, "site": v.site, "environment": v.environment} for v in vlans.scalars().all()]
-    results["devices"] = [{"id": d.id, "name": d.name, "hostname": d.hostname} for d in devices.scalars().all()]
+    results["devices"] = [{"id": d.id, "name": d.name, "hostname": d.hostname, "location": d.location, "role": d.role, "vendor": d.vendor} for d in devices.scalars().all()]
     return results

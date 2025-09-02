@@ -22,7 +22,7 @@ export default function SearchPage() {
   
   const { data, refetch, isFetching } = useQuery({
     queryKey: ["search", q],
-    queryFn: async () => (await api.get("/api/search", { params: q })).data,
+    queryFn: async () => (await api.get("/api/search", { params: { ...q, q: q.text } })).data,
     enabled: false,
   });
 
@@ -122,7 +122,7 @@ export default function SearchPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Result title="Supernets" rows={data.supernets} cols={["name", "cidr", "site", "environment"]} />
           <Result title="Subnets" rows={data.subnets} cols={["name", "cidr", "site", "environment"]} />
-          <Result title="Devices" rows={data.devices} cols={["name", "hostname", "location"]} />
+          <Result title="Devices" rows={data.devices} cols={["name", "hostname", "location", "role", "vendor"]} />
           <Result title="VLANs" rows={data.vlans} cols={["site", "environment", "vlan_id", "name"]} />
         </div>
       )}
