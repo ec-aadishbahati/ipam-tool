@@ -24,7 +24,7 @@ async def list_devices(
     
     offset = (page - 1) * limit
     res = await db.execute(
-        select(Device).options(selectinload(Device.vlan)).offset(offset).limit(limit)
+        select(Device).options(selectinload(Device.vlan)).order_by(Device.id.desc()).offset(offset).limit(limit)
     )
     devices = res.scalars().all()
     

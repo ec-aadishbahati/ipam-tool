@@ -4,6 +4,7 @@ import {
   getRefreshToken,
   setTokens,
   clearTokens,
+  getLastActivity,
 } from "./auth";
 
 const rawBase = import.meta.env.VITE_API_BASE as string | undefined;
@@ -50,6 +51,14 @@ api.interceptors.response.use(
     const { response, config } = error;
     if (response?.status === 401 && !config._retry) {
       config._retry = true;
+      
+      const idleTime = Date.now() - getLastActivity();
+      if (idleTime > 5 * 60 * 1000) {
+        clearTokens();
+        window.location.href = "/login";
+        return Promise.reject(error);
+      }
+      
       if (!isRefreshing) {
         isRefreshing = true;
         try {

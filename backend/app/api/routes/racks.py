@@ -12,7 +12,7 @@ router = APIRouter()
 
 @router.get("", response_model=list[RackOut])
 async def list_racks(db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
-    res = await db.execute(select(Rack))
+    res = await db.execute(select(Rack).order_by(Rack.id.desc()))
     return res.scalars().all()
 
 
