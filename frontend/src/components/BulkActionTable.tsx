@@ -25,7 +25,9 @@ export function BulkActionTable({ data, entityType, fields, onUpdate, onDelete }
   const qc = useQueryClient();
 
   const bulkDeleteMutation = useMutation({
-    mutationFn: async (ids: number[]) => (await api.delete(`/api/${entityType}/bulk`, { data: { ids } })).data,
+    mutationFn: async (ids: number[]) => {
+      return (await api.delete(`/api/${entityType}/bulk`, { data: { ids } })).data;
+    },
     onSuccess: () => {
       setSelectedIds(new Set());
       setShowBulkDeleteConfirm(false);
@@ -68,7 +70,7 @@ export function BulkActionTable({ data, entityType, fields, onUpdate, onDelete }
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error: any) {
-      const errorMsg = error.response?.data?.detail || error.message || 'Export failed';
+      const errorMsg = getErrorMessage(error, 'Export failed');
       alert(`Export failed: ${errorMsg}`);
     }
   };
