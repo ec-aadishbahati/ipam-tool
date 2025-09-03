@@ -83,20 +83,6 @@ async def update_vlan(vlan_id: int, payload: VlanUpdate, db: AsyncSession = Depe
     return obj
 
 
-@router.delete("/{vlan_id}")
-async def delete_vlan(vlan_id: int, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
-    in_use_subnet = await db.execute(select(Subnet).where(Subnet.vlan_id == vlan_id))
-    if in_use_subnet.first():
-        raise HTTPException(status_code=400, detail="VLAN in use by subnet")
-    in_use_device = await db.execute(select(Device).where(Device.vlan_id == vlan_id))
-    if in_use_device.first():
-        raise HTTPException(status_code=400, detail="VLAN in use by device")
-    await db.execute(delete(Vlan).where(Vlan.id == vlan_id))
-    await db.commit()
-    await record_audit(db, entity_type="vlan", entity_id=vlan_id, action="delete", before=None, after=None, user_id=user.id)
-    return {"message": "deleted"}
-
-
 @router.delete("/bulk")
 async def bulk_delete_vlans(payload: BulkDeleteRequest, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
     deleted_count = 0
@@ -128,6 +114,22 @@ async def bulk_delete_vlans(payload: BulkDeleteRequest, db: AsyncSession = Depen
         await db.commit()
     
     return BulkDeleteResponse(deleted_count=deleted_count, errors=errors)
+
+
+@router.delete("/{vlan_id}")
+async def delete_vlan(vlan_id: int, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+    in_use_subnet = await db.execute(select(Subnet).where(Subnet.vlan_id == vlan_id))
+    if in_use_subnet.first():
+        raise HTTPException(status_code=400, detail="VLAN in use by subnet")
+    in_use_device = await db.execute(select(Device).where(Device.vlan_id == vlan_id))
+    if in_use_device.first():
+        raise HTTPException(status_code=400, detail="VLAN in use by device")
+    await db.execute(delete(Vlan).where(Vlan.id == vlan_id))
+    await db.commit()
+    await record_audit(db, entity_type="vlan", entity_id=vlan_id, action="delete", before=None, after=None, user_id=user.id)
+    return {"message": "deleted"}
+
+
 
 
 @router.post("/export/selected")
