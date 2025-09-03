@@ -25,7 +25,12 @@ export function BulkActionTable({ data, entityType, fields, onUpdate, onDelete }
   const qc = useQueryClient();
 
   const bulkDeleteMutation = useMutation({
-    mutationFn: async (ids: number[]) => (await api.delete(`/api/${entityType}/bulk`, { data: { ids } })).data,
+    mutationFn: async (ids: number[]) => {
+      console.log('Bulk delete endpoint:', `/api/${entityType}/bulk`);
+      console.log('Entity type:', entityType);
+      console.log('IDs to delete:', ids);
+      return (await api.delete(`/api/${entityType}/bulk`, { data: { ids } })).data;
+    },
     onSuccess: () => {
       setSelectedIds(new Set());
       setShowBulkDeleteConfirm(false);
