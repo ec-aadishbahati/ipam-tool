@@ -74,20 +74,54 @@ export default function IpAssignments() {
       </div>
 
       <div className="flex gap-2 mb-4">
-        <a
-          href="/api/ip-assignments/export/csv"
+        <button
+          onClick={async () => {
+            try {
+              const response = await api.get('/api/ip-assignments/export/csv', {
+                responseType: 'blob'
+              });
+              const blob = new Blob([response.data], { type: 'text/csv' });
+              const url = window.URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = 'ip-assignments.csv';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              window.URL.revokeObjectURL(url);
+            } catch (error: any) {
+              const errorMsg = error.response?.data?.detail || error.message || 'Export failed';
+              alert(`Export failed: ${errorMsg}`);
+            }
+          }}
           className="bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700"
-          download
         >
           Export CSV
-        </a>
-        <a
-          href="/api/ip-assignments/import/template"
+        </button>
+        <button
+          onClick={async () => {
+            try {
+              const response = await api.get('/api/ip-assignments/import/template', {
+                responseType: 'blob'
+              });
+              const blob = new Blob([response.data], { type: 'text/csv' });
+              const url = window.URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = 'ip-assignments-template.csv';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              window.URL.revokeObjectURL(url);
+            } catch (error: any) {
+              const errorMsg = error.response?.data?.detail || error.message || 'Import template download failed';
+              alert(`Download failed: ${errorMsg}`);
+            }
+          }}
           className="bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700"
-          download
         >
           Download Import Template
-        </a>
+        </button>
         <label className="bg-orange-600 text-white px-3 py-2 rounded text-sm hover:bg-orange-700 cursor-pointer">
           Import CSV
           <input
