@@ -19,7 +19,7 @@ export default function IpAssignments() {
   });
   const { data: allSubnetsResponse, isLoading: allSubnetsLoading, error: allSubnetsError } = useQuery({ 
     queryKey: ["subnets-all"], 
-    queryFn: async () => (await api.get("/api/subnets?page=1&limit=1000")).data 
+    queryFn: async () => (await api.get("/api/subnets?page=1&limit=100")).data 
   });
   const allSubnets = allSubnetsResponse?.items || [];
   const { data: devicesResponse, isLoading: devicesLoading, error: devicesError } = useQuery({ 
