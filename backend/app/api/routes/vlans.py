@@ -6,6 +6,7 @@ from app.db.session import get_db
 from app.db.models import Vlan, Subnet, Device
 from app.schemas.vlan import VlanCreate, VlanOut, VlanUpdate
 from app.schemas.pagination import PaginatedResponse
+from app.schemas.bulk import BulkDeleteRequest, BulkDeleteResponse, BulkExportRequest
 from app.services.audit import record_audit
 
 router = APIRouter()
@@ -94,3 +95,57 @@ async def delete_vlan(vlan_id: int, db: AsyncSession = Depends(get_db), user=Dep
     await db.commit()
     await record_audit(db, entity_type="vlan", entity_id=vlan_id, action="delete", before=None, after=None, user_id=user.id)
     return {"message": "deleted"}
+
+
+@router.delete("/bulk")
+async def bulk_delete_vlans(payload: BulkDeleteRequest, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+    deleted_count = 0
+    errors = []
+    
+    for vlan_id in payload.ids:
+        try:
+            in_use_subnet = await db.execute(select(Subnet).where(Subnet.vlan_id == vlan_id))
+            if in_use_subnet.first():
+                errors.append(f"VLAN {vlan_id} is in use by subnet")
+                continue
+            in_use_device = await db.execute(select(Device).where(Device.vlan_id == vlan_id))
+            if in_use_device.first():
+                errors.append(f"VLAN {vlan_id} is in use by device")
+                continue
+                
+            result = await db.execute(select(Vlan).where(Vlan.id == vlan_id))
+            vlan = result.scalar_one_or_none()
+            if vlan:
+                await db.execute(delete(Vlan).where(Vlan.id == vlan_id))
+                await record_audit(db, entity_type="vlan", entity_id=vlan_id, action="bulk_delete", before=None, after=None, user_id=user.id)
+                deleted_count += 1
+            else:
+                errors.append(f"VLAN with ID {vlan_id} not found")
+        except Exception as e:
+            errors.append(f"Failed to delete VLAN {vlan_id}: {str(e)}")
+    
+    if deleted_count > 0:
+        await db.commit()
+    
+    return BulkDeleteResponse(deleted_count=deleted_count, errors=errors)
+
+
+@router.post("/export/selected")
+async def export_selected_vlans(payload: BulkExportRequest, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+    from app.utils.csv_export import create_csv_response
+    
+    res = await db.execute(select(Vlan).where(Vlan.id.in_(payload.ids)))
+    vlans = res.scalars().all()
+    
+    data = []
+    for vlan in vlans:
+        data.append({
+            "site": vlan.site or "",
+            "environment": vlan.environment or "",
+            "vlan_id": str(vlan.vlan_id),
+            "name": vlan.name or "",
+            "purpose_id": str(vlan.purpose_id) if vlan.purpose_id else ""
+        })
+    
+    headers = ["site", "environment", "vlan_id", "name", "purpose_id"]
+    return create_csv_response(data, headers, "vlans-selected.csv")

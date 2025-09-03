@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { api } from "../lib/api";
 import { getErrorMessage, getErrorDetails } from "../utils/errorHandling";
-import { EditableRow } from "../components/EditableRow";
+import { BulkActionTable } from "../components/BulkActionTable";
 import { Pagination } from "../components/Pagination";
 import { AllocationBar } from "../components/AllocationBar";
 
@@ -143,100 +143,76 @@ export default function Subnets() {
         )}
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-xs border">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="text-left p-2 border">Name</th>
-              <th className="text-left p-2 border">CIDR</th>
-              <th className="text-left p-2 border">Allocation</th>
-              <th className="text-left p-2 border">Available IPs</th>
-              <th className="text-left p-2 border">Valid IP Range</th>
-              <th className="text-left p-2 border">Gateway</th>
-              <th className="text-left p-2 border">Purpose</th>
-              <th className="text-left p-2 border">VLAN</th>
-              <th className="text-left p-2 border">Site</th>
-              <th className="text-left p-2 border">Env</th>
-              <th className="text-left p-2 border">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(subnets ?? []).map((s: any) => (
-              <EditableRow
-                key={s.id}
-                entity={s}
-                entityType="subnets"
-                fields={[
-                  { key: 'name', label: 'Name', editable: true },
-                  { key: 'cidr', label: 'CIDR', editable: false, render: (value: any) => <span className="font-mono">{value}</span> },
-                  { 
-                    key: 'utilization_percentage', 
-                    label: 'Allocation', 
-                    editable: false,
-                    render: (value: any, entity: any) => (
-                      <div className="flex flex-col gap-1">
-                        <AllocationBar 
-                          utilizationPercentage={value} 
-                          showPercentage={false} 
-                          spatialSegments={entity.spatial_segments}
-                        />
-                        <span className={`px-2 py-1 rounded text-xs self-start ${value > 80 ? 'bg-red-100 text-red-800' : value > 60 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
-                          {value?.toFixed(1)}%
-                        </span>
-                      </div>
-                    )
-                  },
-                  { 
-                    key: 'available_ips', 
-                    label: 'Available IPs', 
-                    editable: false,
-                    render: (value: any) => (
-                      <span className={`px-2 py-1 rounded text-xs ${value === 0 ? 'bg-red-100 text-red-800' : value < 10 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
-                        {value}
-                      </span>
-                    )
-                  },
-                  { key: 'first_ip', label: 'Valid IP Range', editable: false, render: (value: any, entity: any) => `${value} - ${entity.last_ip}` },
-                  { 
-                    key: 'gateway_ip', 
-                    label: 'Gateway', 
-                    editable: false,
-                    render: (value: any, entity: any) => {
-                      if (entity.gateway_mode === 'none') return '-';
-                      if (entity.gateway_mode === 'auto_first' && entity.first_ip) return entity.first_ip;
-                      return value || '-';
-                    }
-                  },
-                  { 
-                    key: 'purpose_id', 
-                    label: 'Purpose', 
-                    type: 'select',
-                    editable: true,
-                    options: (purposes ?? []).map((p: any) => ({value: p.id, label: p.name})),
-                    render: (value: any) => {
-                      const purpose = purposes?.find((p: any) => p.id === value);
-                      return purpose ? `${purpose.name}${purpose.category ? ` (${purpose.category.name})` : ''}` : value;
-                    }
-                  },
-                  { 
-                    key: 'vlan_id', 
-                    label: 'VLAN', 
-                    type: 'select',
-                    editable: true,
-                    options: (vlans ?? []).map((v: any) => ({value: v.id, label: `${v.vlan_id} - ${v.name}`})),
-                    render: (value: any) => {
-                      const vlan = vlans?.find((v: any) => v.id === value);
-                      return vlan ? `${vlan.vlan_id} - ${vlan.name}` : value;
-                    }
-                  },
-                  { key: 'site', label: 'Site', editable: true },
-                  { key: 'environment', label: 'Environment', editable: true },
-                ]}
-              />
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <BulkActionTable
+        data={subnets ?? []}
+        entityType="subnets"
+        fields={[
+          { key: 'name', label: 'Name', editable: true },
+          { key: 'cidr', label: 'CIDR', editable: false, render: (value: any) => <span className="font-mono">{value}</span> },
+          { 
+            key: 'utilization_percentage', 
+            label: 'Allocation', 
+            editable: false,
+            render: (value: any, entity: any) => (
+              <div className="flex flex-col gap-1">
+                <AllocationBar 
+                  utilizationPercentage={value} 
+                  showPercentage={false} 
+                  spatialSegments={entity.spatial_segments}
+                />
+                <span className={`px-2 py-1 rounded text-xs self-start ${value > 80 ? 'bg-red-100 text-red-800' : value > 60 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                  {value?.toFixed(1)}%
+                </span>
+              </div>
+            )
+          },
+          { 
+            key: 'available_ips', 
+            label: 'Available IPs', 
+            editable: false,
+            render: (value: any) => (
+              <span className={`px-2 py-1 rounded text-xs ${value === 0 ? 'bg-red-100 text-red-800' : value < 10 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                {value}
+              </span>
+            )
+          },
+          { key: 'first_ip', label: 'Valid IP Range', editable: false, render: (value: any, entity: any) => `${value} - ${entity.last_ip}` },
+          { 
+            key: 'gateway_ip', 
+            label: 'Gateway', 
+            editable: false,
+            render: (value: any, entity: any) => {
+              if (entity.gateway_mode === 'none') return '-';
+              if (entity.gateway_mode === 'auto_first' && entity.first_ip) return entity.first_ip;
+              return value || '-';
+            }
+          },
+          { 
+            key: 'purpose_id', 
+            label: 'Purpose', 
+            type: 'select',
+            editable: true,
+            options: (purposes ?? []).map((p: any) => ({value: p.id, label: p.name})),
+            render: (value: any) => {
+              const purpose = purposes?.find((p: any) => p.id === value);
+              return purpose ? `${purpose.name}${purpose.category ? ` (${purpose.category.name})` : ''}` : value;
+            }
+          },
+          { 
+            key: 'vlan_id', 
+            label: 'VLAN', 
+            type: 'select',
+            editable: true,
+            options: (vlans ?? []).map((v: any) => ({value: v.id, label: `${v.vlan_id} - ${v.name}`})),
+            render: (value: any) => {
+              const vlan = vlans?.find((v: any) => v.id === value);
+              return vlan ? `${vlan.vlan_id} - ${vlan.name}` : value;
+            }
+          },
+          { key: 'site', label: 'Site', editable: true },
+          { key: 'environment', label: 'Environment', editable: true },
+        ]}
+      />
       {paginatedSubnets && (
         <Pagination
           currentPage={page}

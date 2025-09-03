@@ -5,6 +5,7 @@ from app.api.deps import get_current_user
 from app.db.session import get_db
 from app.db.models import Rack, Device
 from app.schemas.rack import RackCreate, RackOut, RackUpdate
+from app.schemas.bulk import BulkDeleteRequest, BulkDeleteResponse, BulkExportRequest
 from app.services.audit import record_audit
 
 router = APIRouter()
@@ -88,3 +89,56 @@ async def delete_rack(rack_id: int, db: AsyncSession = Depends(get_db), user=Dep
     await db.commit()
     await record_audit(db, entity_type="rack", entity_id=rack_id, action="delete", before=None, after=None, user_id=user.id)
     return {"message": "deleted"}
+
+
+@router.delete("/bulk")
+async def bulk_delete_racks(payload: BulkDeleteRequest, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+    deleted_count = 0
+    errors = []
+    
+    for rack_id in payload.ids:
+        try:
+            in_use_device = await db.execute(select(Device).where(Device.rack_id == rack_id))
+            if in_use_device.first():
+                errors.append(f"Rack {rack_id} is in use by device")
+                continue
+                
+            result = await db.execute(select(Rack).where(Rack.id == rack_id))
+            rack = result.scalar_one_or_none()
+            if rack:
+                await db.execute(delete(Rack).where(Rack.id == rack_id))
+                await record_audit(db, entity_type="rack", entity_id=rack_id, action="bulk_delete", before=None, after=None, user_id=user.id)
+                deleted_count += 1
+            else:
+                errors.append(f"Rack with ID {rack_id} not found")
+        except Exception as e:
+            errors.append(f"Failed to delete rack {rack_id}: {str(e)}")
+    
+    if deleted_count > 0:
+        await db.commit()
+    
+    return BulkDeleteResponse(deleted_count=deleted_count, errors=errors)
+
+
+@router.post("/export/selected")
+async def export_selected_racks(payload: BulkExportRequest, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+    from app.utils.csv_export import create_csv_response
+    
+    res = await db.execute(select(Rack).where(Rack.id.in_(payload.ids)))
+    racks = res.scalars().all()
+    
+    data = []
+    for rack in racks:
+        data.append({
+            "aisle": rack.aisle or "",
+            "rack_number": rack.rack_number or "",
+            "position_count": str(rack.position_count) if rack.position_count else "",
+            "power_type": rack.power_type or "",
+            "power_capacity": str(rack.power_capacity) if rack.power_capacity else "",
+            "cooling_type": rack.cooling_type or "",
+            "location": rack.location or "",
+            "notes": rack.notes or ""
+        })
+    
+    headers = ["aisle", "rack_number", "position_count", "power_type", "power_capacity", "cooling_type", "location", "notes"]
+    return create_csv_response(data, headers, "racks-selected.csv")
