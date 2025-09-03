@@ -13,10 +13,15 @@ export default function IpAssignments() {
     queryFn: async () => (await api.get(`/api/ip-assignments?page=${page}&limit=75`)).data 
   });
   const data = paginatedIpAssignments?.items || [];
-  const { data: subnets, isLoading: subnetsLoading, error: subnetsError } = useQuery({ 
+  const { data: availableSubnets, isLoading: availableSubnetsLoading, error: availableSubnetsError } = useQuery({ 
     queryKey: ["subnets-available"], 
     queryFn: async () => (await api.get("/api/subnets/available")).data 
   });
+  const { data: allSubnetsResponse, isLoading: allSubnetsLoading, error: allSubnetsError } = useQuery({ 
+    queryKey: ["subnets-all"], 
+    queryFn: async () => (await api.get("/api/subnets?page=1&limit=1000")).data 
+  });
+  const allSubnets = allSubnetsResponse?.items || [];
   const { data: devicesResponse, isLoading: devicesLoading, error: devicesError } = useQuery({ 
     queryKey: ["devices"], 
     queryFn: async () => (await api.get("/api/devices?page=1&limit=100")).data 
@@ -40,7 +45,7 @@ export default function IpAssignments() {
         <div className="grid grid-cols-2 gap-2">
           <select className="border p-2 rounded" value={form.subnet_id ?? ""} onChange={(e) => setForm({ ...form, subnet_id: e.target.value ? Number(e.target.value) : undefined })}>
             <option value="">Subnet</option>
-            {(subnets ?? []).map((s: any) => (
+            {(availableSubnets ?? []).map((s: any) => (
               <option key={s.id} value={s.id}>
                 {s.name} - {s.cidr} ({s.available_ips} available)
               </option>
@@ -62,7 +67,8 @@ export default function IpAssignments() {
           Create
         </button>
         {create.error && <div className="text-sm text-red-600">{getErrorMessage(create.error)}</div>}
-        {subnetsError && <div className="text-sm text-red-600">Failed to load subnets: {getErrorMessage(subnetsError, "Network error")}</div>}
+        {availableSubnetsError && <div className="text-sm text-red-600">Failed to load available subnets: {getErrorMessage(availableSubnetsError, "Network error")}</div>}
+        {allSubnetsError && <div className="text-sm text-red-600">Failed to load subnets: {getErrorMessage(allSubnetsError, "Network error")}</div>}
         {devicesError && <div className="text-sm text-red-600">Failed to load devices: {getErrorMessage(devicesError, "Network error")}</div>}
         {ipError && <div className="text-sm text-red-600">Failed to load IP assignments: {getErrorMessage(ipError, "Network error")}</div>}
       </div>
@@ -133,7 +139,7 @@ export default function IpAssignments() {
                     label: 'Subnet', 
                     editable: false,
                     render: (value: any) => {
-                      const subnet = subnets?.find((s: any) => s.id === value);
+                      const subnet = allSubnets?.find((s: any) => s.id === value);
                       return subnet ? `${subnet.name} - ${subnet.cidr}` : value;
                     }
                   },
