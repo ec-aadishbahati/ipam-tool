@@ -70,7 +70,7 @@ export function BulkActionTable({ data, entityType, fields, onUpdate, onDelete }
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error: any) {
-      const errorMsg = error.response?.data?.detail || error.message || 'Export failed';
+      const errorMsg = getErrorMessage(error, 'Export failed');
       alert(`Export failed: ${errorMsg}`);
     }
   };

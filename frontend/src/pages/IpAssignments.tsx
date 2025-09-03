@@ -90,7 +90,7 @@ export default function IpAssignments() {
               document.body.removeChild(link);
               window.URL.revokeObjectURL(url);
             } catch (error: any) {
-              const errorMsg = error.response?.data?.detail || error.message || 'Export failed';
+              const errorMsg = getErrorMessage(error, 'Export failed');
               alert(`Export failed: ${errorMsg}`);
             }
           }}
@@ -114,7 +114,7 @@ export default function IpAssignments() {
               document.body.removeChild(link);
               window.URL.revokeObjectURL(url);
             } catch (error: any) {
-              const errorMsg = error.response?.data?.detail || error.message || 'Template download failed';
+              const errorMsg = getErrorMessage(error, 'Template download failed');
               alert(`Download failed: ${errorMsg}`);
             }
           }}
@@ -140,7 +140,7 @@ export default function IpAssignments() {
                   alert(`Import successful: ${response.data.imported_count} IP assignments imported`);
                   qc.invalidateQueries({ queryKey: ["ip-assignments"] });
                 } catch (error: any) {
-                  const errorMsg = error.response?.data?.detail || error.message || 'Import failed';
+                  const errorMsg = getErrorMessage(error, 'Import failed');
                   alert(`Import failed: ${errorMsg}`);
                 }
               }
