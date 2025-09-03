@@ -79,7 +79,7 @@ export default function Devices() {
               document.body.removeChild(link);
               window.URL.revokeObjectURL(url);
             } catch (error: any) {
-              const errorMsg = error.response?.data?.detail || error.message || 'Export failed';
+              const errorMsg = getErrorMessage(error, 'Export failed');
               alert(`Export failed: ${errorMsg}`);
             }
           }}
@@ -103,7 +103,7 @@ export default function Devices() {
               document.body.removeChild(link);
               window.URL.revokeObjectURL(url);
             } catch (error: any) {
-              const errorMsg = error.response?.data?.detail || error.message || 'Template download failed';
+              const errorMsg = getErrorMessage(error, 'Template download failed');
               alert(`Download failed: ${errorMsg}`);
             }
           }}

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../lib/api";
+import { getErrorMessage } from "../utils/errorHandling";
 
 export default function SearchPage() {
   const [q, setQ] = useState({ 
@@ -45,7 +46,7 @@ export default function SearchPage() {
       }
       setCsvFile(null);
     } catch (error: any) {
-      alert(`Import failed: ${error.response?.data?.detail || error.message}`);
+      alert(`Import failed: ${getErrorMessage(error)}`);
     }
   };
 
@@ -104,7 +105,7 @@ export default function SearchPage() {
                 document.body.removeChild(link);
                 window.URL.revokeObjectURL(url);
               } catch (error: any) {
-                const errorMsg = error.response?.data?.detail || error.message || 'Template download failed';
+                const errorMsg = getErrorMessage(error, 'Template download failed');
                 alert(`Download failed: ${errorMsg}`);
               }
             }}
@@ -142,7 +143,7 @@ export default function SearchPage() {
               document.body.removeChild(link);
               window.URL.revokeObjectURL(url);
             } catch (error: any) {
-              const errorMsg = error.response?.data?.detail || error.message || 'Export failed';
+              const errorMsg = getErrorMessage(error, 'Export failed');
               alert(`Export failed: ${errorMsg}`);
             }
           }}
