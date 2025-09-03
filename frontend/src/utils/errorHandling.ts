@@ -1,8 +1,9 @@
 export function getErrorMessage(error: any, fallback: string = "Error"): string {
   if (error?.response?.data?.detail && Array.isArray(error.response.data.detail)) {
-    return error.response.data.detail.map((err: any) => 
+    const messages = error.response.data.detail.map((err: any) => 
       err.msg || err.message || JSON.stringify(err)
-    ).join(', ');
+    );
+    return messages.join(', ');
   }
   
   return error?.response?.data?.detail || error?.message || fallback;
