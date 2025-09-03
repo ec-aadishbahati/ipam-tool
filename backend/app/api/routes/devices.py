@@ -85,6 +85,30 @@ async def update_device(device_id: int, payload: DeviceUpdate, db: AsyncSession 
     return obj
 
 
+@router.delete("/bulk")
+async def bulk_delete_devices(payload: BulkDeleteRequest, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+    deleted_count = 0
+    errors = []
+    
+    for device_id in payload.ids:
+        try:
+            result = await db.execute(select(Device).where(Device.id == device_id))
+            device = result.scalar_one_or_none()
+            if device:
+                await db.execute(delete(Device).where(Device.id == device_id))
+                await record_audit(db, entity_type="device", entity_id=device_id, action="bulk_delete", before=None, after=None, user_id=user.id)
+                deleted_count += 1
+            else:
+                errors.append(f"Device with ID {device_id} not found")
+        except Exception as e:
+            errors.append(f"Failed to delete device {device_id}: {str(e)}")
+    
+    if deleted_count > 0:
+        await db.commit()
+    
+    return BulkDeleteResponse(deleted_count=deleted_count, errors=errors)
+
+
 @router.delete("/{device_id}")
 async def delete_device(device_id: int, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
     await db.execute(delete(Device).where(Device.id == device_id))
@@ -238,28 +262,6 @@ async def import_devices_csv(file: UploadFile, db: AsyncSession = Depends(get_db
     }
 
 
-@router.delete("/bulk")
-async def bulk_delete_devices(payload: BulkDeleteRequest, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
-    deleted_count = 0
-    errors = []
-    
-    for device_id in payload.ids:
-        try:
-            result = await db.execute(select(Device).where(Device.id == device_id))
-            device = result.scalar_one_or_none()
-            if device:
-                await db.execute(delete(Device).where(Device.id == device_id))
-                await record_audit(db, entity_type="device", entity_id=device_id, action="bulk_delete", before=None, after=None, user_id=user.id)
-                deleted_count += 1
-            else:
-                errors.append(f"Device with ID {device_id} not found")
-        except Exception as e:
-            errors.append(f"Failed to delete device {device_id}: {str(e)}")
-    
-    if deleted_count > 0:
-        await db.commit()
-    
-    return BulkDeleteResponse(deleted_count=deleted_count, errors=errors)
 
 
 @router.post("/export/selected")

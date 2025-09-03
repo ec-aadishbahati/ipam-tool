@@ -189,6 +189,39 @@ async def update_subnet(subnet_id: int, payload: SubnetUpdate, db: AsyncSession 
     return obj
 
 
+@router.delete("/bulk")
+async def bulk_delete_subnets(payload: BulkDeleteRequest, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+    deleted_count = 0
+    errors = []
+    
+    for subnet_id in payload.ids:
+        try:
+            result = await db.execute(select(Subnet).where(Subnet.id == subnet_id))
+            subnet = result.scalar_one_or_none()
+            if subnet:
+                supernet_id = subnet.supernet_id
+                await db.execute(delete(Subnet).where(Subnet.id == subnet_id))
+                await record_audit(db, entity_type="subnet", entity_id=subnet_id, action="bulk_delete", before=None, after=None, user_id=user.id)
+                deleted_count += 1
+                
+                if supernet_id:
+                    supernet_res = await db.execute(select(Supernet).options(selectinload(Supernet.subnets)).where(Supernet.id == supernet_id))
+                    supernet = supernet_res.scalar_one_or_none()
+                    if supernet:
+                        assigned_cidrs = [s.cidr for s in supernet.subnets if s.id != subnet_id]
+                        supernet.utilization_percentage = calculate_supernet_utilization(supernet.cidr, assigned_cidrs)
+                        db.add(supernet)
+            else:
+                errors.append(f"Subnet with ID {subnet_id} not found")
+        except Exception as e:
+            errors.append(f"Failed to delete subnet {subnet_id}: {str(e)}")
+    
+    if deleted_count > 0:
+        await db.commit()
+    
+    return BulkDeleteResponse(deleted_count=deleted_count, errors=errors)
+
+
 @router.delete("/{subnet_id}")
 async def delete_subnet(subnet_id: int, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
     subnet_res = await db.execute(select(Subnet).where(Subnet.id == subnet_id))
@@ -270,37 +303,6 @@ async def get_import_template():
     return create_csv_template(headers, sample_data, "subnet_import_template.csv")
 
 
-@router.delete("/bulk")
-async def bulk_delete_subnets(payload: BulkDeleteRequest, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
-    deleted_count = 0
-    errors = []
-    
-    for subnet_id in payload.ids:
-        try:
-            result = await db.execute(select(Subnet).where(Subnet.id == subnet_id))
-            subnet = result.scalar_one_or_none()
-            if subnet:
-                supernet_id = subnet.supernet_id
-                await db.execute(delete(Subnet).where(Subnet.id == subnet_id))
-                await record_audit(db, entity_type="subnet", entity_id=subnet_id, action="bulk_delete", before=None, after=None, user_id=user.id)
-                deleted_count += 1
-                
-                if supernet_id:
-                    supernet_res = await db.execute(select(Supernet).options(selectinload(Supernet.subnets)).where(Supernet.id == supernet_id))
-                    supernet = supernet_res.scalar_one_or_none()
-                    if supernet:
-                        assigned_cidrs = [s.cidr for s in supernet.subnets if s.id != subnet_id]
-                        supernet.utilization_percentage = calculate_supernet_utilization(supernet.cidr, assigned_cidrs)
-                        db.add(supernet)
-            else:
-                errors.append(f"Subnet with ID {subnet_id} not found")
-        except Exception as e:
-            errors.append(f"Failed to delete subnet {subnet_id}: {str(e)}")
-    
-    if deleted_count > 0:
-        await db.commit()
-    
-    return BulkDeleteResponse(deleted_count=deleted_count, errors=errors)
 
 
 @router.post("/export/selected")
