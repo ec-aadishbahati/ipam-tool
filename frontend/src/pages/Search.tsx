@@ -90,7 +90,24 @@ export default function SearchPage() {
           </select>
           <button 
             className="border rounded px-3 py-2" 
-            onClick={() => window.open(`${import.meta.env.VITE_API_BASE || ''}/api/${importType}/import/template`, '_blank')}
+            onClick={async () => {
+              try {
+                const endpoint = `/api/${importType}/import/template`;
+                const response = await api.get(endpoint, { responseType: 'blob' });
+                const blob = new Blob([response.data], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `${importType}-template.csv`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+              } catch (error: any) {
+                const errorMsg = error.response?.data?.detail || error.message || 'Template download failed';
+                alert(`Download failed: ${errorMsg}`);
+              }
+            }}
           >
             Download {importType === 'devices' ? 'Device' : 'Subnet'} Template
           </button>
@@ -112,7 +129,23 @@ export default function SearchPage() {
         </div>
         <button 
           className="bg-green-600 text-white rounded px-3 py-2" 
-          onClick={() => window.open(`${import.meta.env.VITE_API_BASE || ''}/api/export/all`, '_blank')}
+          onClick={async () => {
+            try {
+              const response = await api.get('/api/export/all', { responseType: 'blob' });
+              const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+              const url = window.URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = 'ee_spark_export.xlsx';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              window.URL.revokeObjectURL(url);
+            } catch (error: any) {
+              const errorMsg = error.response?.data?.detail || error.message || 'Export failed';
+              alert(`Export failed: ${errorMsg}`);
+            }
+          }}
         >
           Export All Data
         </button>
