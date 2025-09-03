@@ -13,11 +13,10 @@ export default function IpAssignments() {
     queryFn: async () => (await api.get(`/api/ip-assignments?page=${page}&limit=75`)).data 
   });
   const data = paginatedIpAssignments?.items || [];
-  const { data: subnetsResponse, isLoading: subnetsLoading, error: subnetsError } = useQuery({ 
-    queryKey: ["subnets"], 
-    queryFn: async () => (await api.get("/api/subnets?page=1&limit=100")).data 
+  const { data: subnets, isLoading: subnetsLoading, error: subnetsError } = useQuery({ 
+    queryKey: ["subnets-available"], 
+    queryFn: async () => (await api.get("/api/subnets/available")).data 
   });
-  const subnets = subnetsResponse?.items || [];
   const { data: devicesResponse, isLoading: devicesLoading, error: devicesError } = useQuery({ 
     queryKey: ["devices"], 
     queryFn: async () => (await api.get("/api/devices?page=1&limit=100")).data 
@@ -43,7 +42,7 @@ export default function IpAssignments() {
             <option value="">Subnet</option>
             {(subnets ?? []).map((s: any) => (
               <option key={s.id} value={s.id}>
-                {s.name} - {s.cidr}
+                {s.name} - {s.cidr} ({s.available_ips} available)
               </option>
             ))}
           </select>

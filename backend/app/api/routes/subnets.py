@@ -233,6 +233,33 @@ async def export_subnets_csv(db: AsyncSession = Depends(get_db), user=Depends(ge
     return create_csv_response(data, headers, "subnets.csv")
 
 
+@router.get("/available", response_model=list[SubnetOut])
+async def list_available_subnets(db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+    """List subnets that have at least one available IP address for assignment"""
+    res = await db.execute(
+        select(Subnet).options(
+            selectinload(Subnet.supernet),
+            selectinload(Subnet.purpose),
+            selectinload(Subnet.vlan),
+            selectinload(Subnet.ip_assignments),
+        ).order_by(Subnet.id.desc())
+    )
+    subnets = res.scalars().all()
+    
+    available_subnets = []
+    for subnet in subnets:
+        assigned_ips = [assignment.ip_address for assignment in subnet.ip_assignments]
+        subnet.utilization_percentage = calculate_subnet_utilization(subnet.cidr, assigned_ips)
+        subnet.available_ips = calculate_subnet_available_ips(subnet.cidr, assigned_ips)
+        subnet.first_ip, subnet.last_ip = get_valid_ip_range(subnet.cidr)
+        subnet.spatial_segments = calculate_subnet_spatial_segments(subnet.cidr, assigned_ips)
+        
+        if subnet.available_ips > 0:
+            available_subnets.append(subnet)
+    
+    return available_subnets
+
+
 @router.get("/import/template")
 async def get_import_template():
     from app.utils.csv_export import create_csv_template
