@@ -98,6 +98,30 @@ async def update_ip_assignment(assignment_id: int, payload: IpAssignmentUpdate, 
     return obj
 
 
+@router.delete("/bulk")
+async def bulk_delete_ip_assignments(payload: BulkDeleteRequest, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+    deleted_count = 0
+    errors = []
+    
+    for assignment_id in payload.ids:
+        try:
+            result = await db.execute(select(IpAssignment).where(IpAssignment.id == assignment_id))
+            assignment = result.scalar_one_or_none()
+            if assignment:
+                await db.execute(delete(IpAssignment).where(IpAssignment.id == assignment_id))
+                await record_audit(db, entity_type="ip_assignment", entity_id=assignment_id, action="bulk_delete", before=None, after=None, user_id=user.id)
+                deleted_count += 1
+            else:
+                errors.append(f"IP Assignment with ID {assignment_id} not found")
+        except Exception as e:
+            errors.append(f"Failed to delete IP assignment {assignment_id}: {str(e)}")
+    
+    if deleted_count > 0:
+        await db.commit()
+    
+    return BulkDeleteResponse(deleted_count=deleted_count, errors=errors)
+
+
 @router.delete("/{assignment_id}")
 async def delete_ip_assignment(assignment_id: int, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
     await db.execute(delete(IpAssignment).where(IpAssignment.id == assignment_id))
@@ -139,30 +163,6 @@ async def get_ip_assignment_import_template():
     headers = ["subnet", "device", "ip_address", "interface", "role"]
     sample_data = ["Example Subnet (10.1.0.0/24)", "Server-01", "10.1.0.10", "eth0", "Management IP"]
     return create_csv_template(headers, sample_data, "ip_assignment_import_template.csv")
-
-
-@router.delete("/bulk")
-async def bulk_delete_ip_assignments(payload: BulkDeleteRequest, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
-    deleted_count = 0
-    errors = []
-    
-    for assignment_id in payload.ids:
-        try:
-            result = await db.execute(select(IpAssignment).where(IpAssignment.id == assignment_id))
-            assignment = result.scalar_one_or_none()
-            if assignment:
-                await db.execute(delete(IpAssignment).where(IpAssignment.id == assignment_id))
-                await record_audit(db, entity_type="ip_assignment", entity_id=assignment_id, action="bulk_delete", before=None, after=None, user_id=user.id)
-                deleted_count += 1
-            else:
-                errors.append(f"IP Assignment with ID {assignment_id} not found")
-        except Exception as e:
-            errors.append(f"Failed to delete IP assignment {assignment_id}: {str(e)}")
-    
-    if deleted_count > 0:
-        await db.commit()
-    
-    return BulkDeleteResponse(deleted_count=deleted_count, errors=errors)
 
 
 @router.post("/export/selected")
