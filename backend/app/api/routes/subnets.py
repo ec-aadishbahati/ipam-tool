@@ -4,9 +4,10 @@ from sqlalchemy import select, delete, func
 from sqlalchemy.orm import selectinload
 from app.api.deps import get_current_user
 from app.db.session import get_db
-from app.db.models import Subnet, Purpose, Vlan, Supernet
+from app.db.models import Subnet, Purpose, Vlan, Supernet, IpAssignment
 from app.schemas.subnet import SubnetCreate, SubnetOut, SubnetUpdate
 from app.schemas.pagination import PaginatedResponse
+from app.schemas.bulk import BulkDeleteRequest, BulkDeleteResponse, BulkExportRequest
 from app.services.ipam import cidr_overlap, is_gateway_valid, calculate_subnet_utilization, get_valid_ip_range, calculate_supernet_utilization, cidr_contains, calculate_subnet_available_ips, calculate_subnet_spatial_segments
 from app.services.audit import record_audit
 from app.services.subnet_allocation import allocate_subnet_cidr, calculate_gateway_ip
@@ -267,6 +268,76 @@ async def get_import_template():
     headers = ["name", "cidr", "purpose", "assigned_to", "gateway_ip", "vlan", "site", "environment"]
     sample_data = ["Example Subnet", "10.1.0.0/24", "Production", "Network Team", "10.1.0.1", "100 - Production", "HQ", "prod"]
     return create_csv_template(headers, sample_data, "subnet_import_template.csv")
+
+
+@router.delete("/bulk")
+async def bulk_delete_subnets(payload: BulkDeleteRequest, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+    deleted_count = 0
+    errors = []
+    
+    for subnet_id in payload.ids:
+        try:
+            result = await db.execute(select(Subnet).where(Subnet.id == subnet_id))
+            subnet = result.scalar_one_or_none()
+            if subnet:
+                supernet_id = subnet.supernet_id
+                await db.execute(delete(Subnet).where(Subnet.id == subnet_id))
+                await record_audit(db, entity_type="subnet", entity_id=subnet_id, action="bulk_delete", before=None, after=None, user_id=user.id)
+                deleted_count += 1
+                
+                if supernet_id:
+                    supernet_res = await db.execute(select(Supernet).options(selectinload(Supernet.subnets)).where(Supernet.id == supernet_id))
+                    supernet = supernet_res.scalar_one_or_none()
+                    if supernet:
+                        assigned_cidrs = [s.cidr for s in supernet.subnets if s.id != subnet_id]
+                        supernet.utilization_percentage = calculate_supernet_utilization(supernet.cidr, assigned_cidrs)
+                        db.add(supernet)
+            else:
+                errors.append(f"Subnet with ID {subnet_id} not found")
+        except Exception as e:
+            errors.append(f"Failed to delete subnet {subnet_id}: {str(e)}")
+    
+    if deleted_count > 0:
+        await db.commit()
+    
+    return BulkDeleteResponse(deleted_count=deleted_count, errors=errors)
+
+
+@router.post("/export/selected")
+async def export_selected_subnets(payload: BulkExportRequest, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+    from app.utils.csv_export import create_csv_response
+    
+    res = await db.execute(
+        select(Subnet).options(
+            selectinload(Subnet.supernet),
+            selectinload(Subnet.purpose),
+            selectinload(Subnet.vlan),
+            selectinload(Subnet.ip_assignments),
+        ).where(Subnet.id.in_(payload.ids))
+    )
+    subnets = res.scalars().all()
+    
+    data = []
+    for subnet in subnets:
+        assigned_ips = [assignment.ip_address for assignment in subnet.ip_assignments]
+        utilization = calculate_subnet_utilization(subnet.cidr, assigned_ips)
+        available_ips = calculate_subnet_available_ips(subnet.cidr, assigned_ips)
+        
+        data.append({
+            "name": subnet.name or "",
+            "cidr": subnet.cidr or "",
+            "purpose": subnet.purpose.name if subnet.purpose else "",
+            "site": subnet.site or "",
+            "environment": subnet.environment or "",
+            "vlan": f"{subnet.vlan.vlan_id} - {subnet.vlan.name}" if subnet.vlan else "",
+            "supernet": f"{subnet.supernet.name} - {subnet.supernet.cidr}" if subnet.supernet else "",
+            "gateway": subnet.gateway or "",
+            "utilization": f"{utilization:.1f}%",
+            "available_ips": str(available_ips)
+        })
+    
+    headers = ["name", "cidr", "purpose", "site", "environment", "vlan", "supernet", "gateway", "utilization", "available_ips"]
+    return create_csv_response(data, headers, "subnets-selected.csv")
 
 
 @router.post("/import/csv")

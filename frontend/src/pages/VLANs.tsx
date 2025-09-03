@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { api } from "../lib/api";
 import { getErrorMessage } from "../utils/errorHandling";
-import { EditableRow } from "../components/EditableRow";
+import { BulkActionTable } from "../components/BulkActionTable";
 import { Pagination } from "../components/Pagination";
 
 export default function VLANs() {
@@ -50,46 +50,27 @@ export default function VLANs() {
         {create.error && <div className="text-sm text-red-600">{getErrorMessage(create.error)}</div>}
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-xs border">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="text-left p-2 border">Site</th>
-              <th className="text-left p-2 border">Env</th>
-              <th className="text-left p-2 border">VLAN ID</th>
-              <th className="text-left p-2 border">Name</th>
-              <th className="text-left p-2 border">Purpose</th>
-              <th className="text-left p-2 border">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(data ?? []).map((v: any) => (
-              <EditableRow
-                key={v.id}
-                entity={v}
-                entityType="vlans"
-                fields={[
-                  { key: 'site', label: 'Site', editable: true },
-                  { key: 'environment', label: 'Environment', editable: true },
-                  { key: 'vlan_id', label: 'VLAN ID', type: 'number', editable: true },
-                  { key: 'name', label: 'Name', editable: true },
-                  { 
-                    key: 'purpose_id', 
-                    label: 'Purpose', 
-                    type: 'select',
-                    editable: true,
-                    options: (purposes ?? []).map((p: any) => ({value: p.id, label: p.name})),
-                    render: (value: any) => {
-                      const purpose = purposes?.find((p: any) => p.id === value);
-                      return purpose ? `${purpose.name}${purpose.category ? ` (${purpose.category.name})` : ''}` : value;
-                    }
-                  },
-                ]}
-              />
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <BulkActionTable
+        data={data ?? []}
+        entityType="vlans"
+        fields={[
+          { key: 'site', label: 'Site', editable: true },
+          { key: 'environment', label: 'Environment', editable: true },
+          { key: 'vlan_id', label: 'VLAN ID', type: 'number', editable: true },
+          { key: 'name', label: 'Name', editable: true },
+          { 
+            key: 'purpose_id', 
+            label: 'Purpose', 
+            type: 'select',
+            editable: true,
+            options: (purposes ?? []).map((p: any) => ({value: p.id, label: p.name})),
+            render: (value: any) => {
+              const purpose = purposes?.find((p: any) => p.id === value);
+              return purpose ? `${purpose.name}${purpose.category ? ` (${purpose.category.name})` : ''}` : value;
+            }
+          },
+        ]}
+      />
       {paginatedVlans && (
         <Pagination
           currentPage={page}

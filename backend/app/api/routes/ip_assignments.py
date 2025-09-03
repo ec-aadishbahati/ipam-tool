@@ -4,9 +4,10 @@ from sqlalchemy import select, delete, func
 from sqlalchemy.orm import selectinload
 from app.api.deps import get_current_user
 from app.db.session import get_db
-from app.db.models import IpAssignment, Subnet
+from app.db.models import IpAssignment, Subnet, Device
 from app.schemas.ip_assignment import IpAssignmentCreate, IpAssignmentOut, IpAssignmentUpdate
 from app.schemas.pagination import PaginatedResponse
+from app.schemas.bulk import BulkDeleteRequest, BulkDeleteResponse, BulkExportRequest
 from app.services.ipam import ip_in_cidr, is_usable_ip_in_subnet
 from app.services.audit import record_audit
 
@@ -138,6 +139,55 @@ async def get_ip_assignment_import_template():
     headers = ["subnet", "device", "ip_address", "interface", "role"]
     sample_data = ["Example Subnet (10.1.0.0/24)", "Server-01", "10.1.0.10", "eth0", "Management IP"]
     return create_csv_template(headers, sample_data, "ip_assignment_import_template.csv")
+
+
+@router.delete("/bulk")
+async def bulk_delete_ip_assignments(payload: BulkDeleteRequest, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+    deleted_count = 0
+    errors = []
+    
+    for assignment_id in payload.ids:
+        try:
+            result = await db.execute(select(IpAssignment).where(IpAssignment.id == assignment_id))
+            assignment = result.scalar_one_or_none()
+            if assignment:
+                await db.execute(delete(IpAssignment).where(IpAssignment.id == assignment_id))
+                await record_audit(db, entity_type="ip_assignment", entity_id=assignment_id, action="bulk_delete", before=None, after=None, user_id=user.id)
+                deleted_count += 1
+            else:
+                errors.append(f"IP Assignment with ID {assignment_id} not found")
+        except Exception as e:
+            errors.append(f"Failed to delete IP assignment {assignment_id}: {str(e)}")
+    
+    if deleted_count > 0:
+        await db.commit()
+    
+    return BulkDeleteResponse(deleted_count=deleted_count, errors=errors)
+
+
+@router.post("/export/selected")
+async def export_selected_ip_assignments(payload: BulkExportRequest, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+    from app.utils.csv_export import create_csv_response
+    
+    res = await db.execute(
+        select(IpAssignment).options(
+            selectinload(IpAssignment.subnet), selectinload(IpAssignment.device)
+        ).where(IpAssignment.id.in_(payload.ids))
+    )
+    assignments = res.scalars().all()
+    
+    data = []
+    for assignment in assignments:
+        data.append({
+            "subnet": f"{assignment.subnet.name} - {assignment.subnet.cidr}" if assignment.subnet else "",
+            "device": assignment.device.name if assignment.device else "",
+            "ip_address": assignment.ip_address or "",
+            "interface": assignment.interface or "",
+            "role": assignment.role or ""
+        })
+    
+    headers = ["subnet", "device", "ip_address", "interface", "role"]
+    return create_csv_response(data, headers, "ip-assignments-selected.csv")
 
 
 @router.post("/import/csv")

@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { api } from "../lib/api";
 import { getErrorMessage } from "../utils/errorHandling";
-import { EditableRow } from "../components/EditableRow";
+import { BulkActionTable } from "../components/BulkActionTable";
 import { Pagination } from "../components/Pagination";
 
 export default function IpAssignments() {
@@ -149,54 +149,35 @@ export default function IpAssignments() {
         </label>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-xs border">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="text-left p-2 border">Subnet</th>
-              <th className="text-left p-2 border">Device</th>
-              <th className="text-left p-2 border">IP</th>
-              <th className="text-left p-2 border">Interface</th>
-              <th className="text-left p-2 border">Role</th>
-              <th className="text-left p-2 border">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(data ?? []).map((a: any) => (
-              <EditableRow
-                key={a.id}
-                entity={a}
-                entityType="ip-assignments"
-                fields={[
-                  { 
-                    key: 'subnet_id', 
-                    label: 'Subnet', 
-                    editable: false,
-                    render: (value: any) => {
-                      const subnet = allSubnets?.find((s: any) => s.id === value);
-                      return subnet ? `${subnet.name} - ${subnet.cidr}` : value;
-                    }
-                  },
-                  { 
-                    key: 'device_id', 
-                    label: 'Device', 
-                    type: 'select',
-                    editable: true,
-                    options: (devices ?? []).map((d: any) => ({value: d.id, label: d.name})),
-                    render: (value: any) => {
-                      const device = devices?.find((d: any) => d.id === value);
-                      return device ? device.name : value;
-                    }
-                  },
-                  { key: 'ip_address', label: 'IP', editable: true, render: (value: any) => <span className="font-mono">{value}</span> },
-                  { key: 'interface', label: 'Interface', editable: true },
-                  { key: 'role', label: 'Role', editable: true },
-                ]}
-              />
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <BulkActionTable
+        data={data ?? []}
+        entityType="ip-assignments"
+        fields={[
+          { 
+            key: 'subnet_id', 
+            label: 'Subnet', 
+            editable: false,
+            render: (value: any) => {
+              const subnet = allSubnets?.find((s: any) => s.id === value);
+              return subnet ? `${subnet.name} - ${subnet.cidr}` : value;
+            }
+          },
+          { 
+            key: 'device_id', 
+            label: 'Device', 
+            type: 'select',
+            editable: true,
+            options: (devices ?? []).map((d: any) => ({value: d.id, label: d.name})),
+            render: (value: any) => {
+              const device = devices?.find((d: any) => d.id === value);
+              return device ? device.name : value;
+            }
+          },
+          { key: 'ip_address', label: 'IP', editable: true, render: (value: any) => <span className="font-mono">{value}</span> },
+          { key: 'interface', label: 'Interface', editable: true },
+          { key: 'role', label: 'Role', editable: true },
+        ]}
+      />
       {paginatedIpAssignments && (
         <Pagination
           currentPage={page}

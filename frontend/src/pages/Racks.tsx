@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { api } from "../lib/api";
 import { getErrorMessage } from "../utils/errorHandling";
-import { EditableRow } from "../components/EditableRow";
+import { BulkActionTable } from "../components/BulkActionTable";
 
 export default function Racks() {
   const qc = useQueryClient();
@@ -56,62 +56,40 @@ export default function Racks() {
         {create.error && <div className="text-sm text-red-600">{getErrorMessage(create.error)}</div>}
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-xs border">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="text-left p-2 border">Aisle</th>
-              <th className="text-left p-2 border">Rack #</th>
-              <th className="text-left p-2 border">Positions</th>
-              <th className="text-left p-2 border">Power Type</th>
-              <th className="text-left p-2 border">Power Capacity</th>
-              <th className="text-left p-2 border">Cooling</th>
-              <th className="text-left p-2 border">Location</th>
-              <th className="text-left p-2 border">Notes</th>
-              <th className="text-left p-2 border">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(data ?? []).map((r: any) => (
-              <EditableRow
-                key={r.id}
-                entity={r}
-                entityType="racks"
-                fields={[
-                  { key: 'aisle', label: 'Aisle', editable: true },
-                  { key: 'rack_number', label: 'Rack #', editable: true },
-                  { key: 'position_count', label: 'Positions', type: 'number', editable: true },
-                  { 
-                    key: 'power_type', 
-                    label: 'Power Type', 
-                    type: 'select',
-                    editable: true,
-                    options: [
-                      {value: 'single-phase', label: 'Single Phase'},
-                      {value: 'three-phase', label: 'Three Phase'},
-                      {value: 'dc', label: 'DC Power'}
-                    ]
-                  },
-                  { key: 'power_capacity', label: 'Power Capacity', editable: true },
-                  { 
-                    key: 'cooling_type', 
-                    label: 'Cooling', 
-                    type: 'select',
-                    editable: true,
-                    options: [
-                      {value: 'air', label: 'Air Cooling'},
-                      {value: 'liquid', label: 'Liquid Cooling'},
-                      {value: 'hybrid', label: 'Hybrid Cooling'}
-                    ]
-                  },
-                  { key: 'location', label: 'Location', editable: true },
-                  { key: 'notes', label: 'Notes', editable: true },
-                ]}
-              />
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <BulkActionTable
+        data={data ?? []}
+        entityType="racks"
+        fields={[
+          { key: 'aisle', label: 'Aisle', editable: true },
+          { key: 'rack_number', label: 'Rack #', editable: true },
+          { key: 'position_count', label: 'Positions', type: 'number', editable: true },
+          { 
+            key: 'power_type', 
+            label: 'Power Type', 
+            type: 'select',
+            editable: true,
+            options: [
+              {value: 'single-phase', label: 'Single Phase'},
+              {value: 'three-phase', label: 'Three Phase'},
+              {value: 'dc', label: 'DC Power'}
+            ]
+          },
+          { key: 'power_capacity', label: 'Power Capacity', editable: true },
+          { 
+            key: 'cooling_type', 
+            label: 'Cooling', 
+            type: 'select',
+            editable: true,
+            options: [
+              {value: 'air', label: 'Air Cooling'},
+              {value: 'liquid', label: 'Liquid Cooling'},
+              {value: 'hybrid', label: 'Hybrid Cooling'}
+            ]
+          },
+          { key: 'location', label: 'Location', editable: true },
+          { key: 'notes', label: 'Notes', editable: true },
+        ]}
+      />
     </div>
   );
 }
