@@ -173,6 +173,15 @@ export default function IpAssignments() {
               return device ? device.name : value;
             }
           },
+          { 
+            key: 'hostname', 
+            label: 'Hostname', 
+            editable: false,
+            render: (value: any, entity: any) => {
+              const device = devices?.find((d: any) => d.id === entity.device_id);
+              return device?.hostname || '-';
+            }
+          },
           { key: 'ip_address', label: 'IP', editable: true, render: (value: any) => <span className="font-mono">{value}</span> },
           { key: 'interface', label: 'Interface', editable: true },
           { key: 'role', label: 'Role', editable: true },
