@@ -4,6 +4,7 @@ import { api } from "../lib/api";
 import { getErrorMessage } from "../utils/errorHandling";
 import { BulkActionTable } from "../components/BulkActionTable";
 import { Pagination } from "../components/Pagination";
+import { SearchableSelect } from "../components/SearchableSelect";
 
 export default function IpAssignments() {
   const qc = useQueryClient();
@@ -43,14 +44,16 @@ export default function IpAssignments() {
       <h2 className="text-xl font-semibold">IP Assignments</h2>
       <div className="border rounded p-3 space-y-2">
         <div className="grid grid-cols-2 gap-2">
-          <select className="border p-2 rounded" value={form.subnet_id ?? ""} onChange={(e) => setForm({ ...form, subnet_id: e.target.value ? Number(e.target.value) : undefined })}>
-            <option value="">Subnet</option>
-            {(availableSubnets ?? []).map((s: any) => (
-              <option key={s.id} value={s.id}>
-                {s.name} - {s.cidr} ({s.available_ips} available)
-              </option>
-            ))}
-          </select>
+          <SearchableSelect
+            options={(availableSubnets ?? []).map((s: any) => ({
+              value: s.id,
+              label: `${s.name} - ${s.cidr} (${s.available_ips} available)`,
+              searchText: `${s.name} ${s.cidr} ${s.site || ''} ${s.environment || ''}`
+            }))}
+            value={form.subnet_id}
+            onChange={(value) => setForm({ ...form, subnet_id: value as number | undefined })}
+            placeholder="Select Subnet"
+          />
           <select className="border p-2 rounded" value={form.device_id ?? ""} onChange={(e) => setForm({ ...form, device_id: e.target.value ? Number(e.target.value) : undefined })}>
             <option value="">Device</option>
             {(devices ?? []).map((d: any) => (
