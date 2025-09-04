@@ -153,11 +153,16 @@ export default function SearchPage() {
       </div>
 
       {data && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Result title="Supernets" rows={data.supernets} cols={["name", "cidr", "site", "environment"]} />
-          <Result title="Subnets" rows={data.subnets} cols={["name", "cidr", "site", "environment"]} />
-          <Result title="Devices" rows={data.devices} cols={["name", "hostname", "location", "role", "vendor"]} />
-          <Result title="VLANs" rows={data.vlans} cols={["site", "environment", "vlan_id", "name"]} />
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Result title="Supernets" rows={data.supernets} cols={["name", "cidr", "site", "environment"]} />
+            <Result title="Subnets" rows={data.subnets} cols={["name", "cidr", "site", "environment"]} />
+            <Result title="Devices" rows={data.devices} cols={["name", "hostname", "location", "role", "vendor"]} />
+            <Result title="VLANs" rows={data.vlans} cols={["site", "environment", "vlan_id", "name"]} />
+          </div>
+          {data.ip_assignments && data.ip_assignments.length > 0 && (
+            <Result title="IP Assignments" rows={data.ip_assignments} cols={["ip_address", "role", "interface", "subnet", "device"]} />
+          )}
         </div>
       )}
     </div>

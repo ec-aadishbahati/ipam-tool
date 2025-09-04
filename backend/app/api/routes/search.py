@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from app.api.deps import get_current_user
 from app.db.session import get_db
-from app.db.models import Subnet, Vlan, Device, Supernet, Purpose
+from app.db.models import Subnet, Vlan, Device, Supernet, Purpose, IpAssignment
 
 router = APIRouter()
 
@@ -27,7 +27,7 @@ async def search(
     vlan_id_int = int(vlan_id) if vlan_id and vlan_id.strip() else None
     has_gateway_bool = None if not has_gateway or not has_gateway.strip() else has_gateway.lower() == 'true'
     
-    results = {"subnets": [], "vlans": [], "devices": [], "supernets": []}
+    results = {"subnets": [], "vlans": [], "devices": [], "supernets": [], "ip_assignments": []}
     
     subnet_query = select(Subnet).options(
         selectinload(Subnet.supernet),
@@ -94,8 +94,22 @@ async def search(
     
     devices = await db.execute(device_query)
     
+    ip_assignment_query = select(IpAssignment).options(
+        selectinload(IpAssignment.subnet),
+        selectinload(IpAssignment.device)
+    )
+    if q:
+        ip_assignment_query = ip_assignment_query.where(
+            IpAssignment.ip_address.ilike(f"%{q}%") |
+            IpAssignment.role.ilike(f"%{q}%") |
+            IpAssignment.interface.ilike(f"%{q}%")
+        )
+    
+    ip_assignments = await db.execute(ip_assignment_query)
+    
     results["subnets"] = [{"id": s.id, "cidr": s.cidr, "name": s.name, "site": s.site, "environment": s.environment} for s in subnets.scalars().all()]
     results["supernets"] = [{"id": s.id, "cidr": s.cidr, "name": s.name, "site": s.site, "environment": s.environment} for s in supernets.scalars().all()]
     results["vlans"] = [{"id": v.id, "vlan_id": v.vlan_id, "name": v.name, "site": v.site, "environment": v.environment} for v in vlans.scalars().all()]
     results["devices"] = [{"id": d.id, "name": d.name, "hostname": d.hostname, "location": d.location, "role": d.role, "vendor": d.vendor} for d in devices.scalars().all()]
+    results["ip_assignments"] = [{"id": ip.id, "ip_address": ip.ip_address, "role": ip.role or "", "interface": ip.interface or "", "subnet": ip.subnet.name if ip.subnet else None, "device": ip.device.name if ip.device else None} for ip in ip_assignments.scalars().all()]
     return results
